@@ -80,6 +80,16 @@ me down" scores better than a defensive one.
 "I did not use any" is a perfectly good `PROCESS.md`, if it is true. Say so in a
 sentence and move on.
 
+### Sources and a bibliography
+
+Cite what you draw on, in **APA format**, in a bibliography at the bottom of the README.
+It does not count toward the word limit.
+
+**Check that every source you cite actually exists.** If a language model handed you a
+reference, verify it before you use it — confident, well-formatted, entirely fictional
+citations are one of the most reliable failure modes these systems have, and an essay about
+machine-written text that cites a hallucinated paper is a bad look you will not recover from.
+
 ### A history that shows you worked
 
 Write it over several sittings and commit as you go. **A handful of commits
@@ -122,6 +132,17 @@ Watch **[Dylan Beattie — *The Art of Code*](https://www.youtube.com/watch?v=6a
 (about an hour). It is the best argument I know for programming as an expressive
 medium rather than a technical chore, and it will give you something to agree or
 disagree with.
+
+Other things worth your time, in no particular order:
+
+- Ada Lovelace, [Note G](https://www.fourmilab.ch/babbage/sketch.html) on Babbage's
+  analytical engine — the first published algorithm, written by someone who saw further
+  than the machine's own inventor about what it was for.
+- [Principles behind the Agile Manifesto](https://agilemanifesto.org/principles.html) —
+  is programming a craft? Read it as a document about how people work, not about software.
+- Don Ihde on **mediated perception** — technologies do not exist "in themselves", only in
+  relation to humans and culture. The lecture's version of this argument.
+- Turing, *On Computable Numbers* — what a computer actually is, from before there were any.
 
 If you have not finished [`week01/README.md`](../week01/README.md), do that first —
 it covers creating a repository, committing, and pushing, which is everything this
