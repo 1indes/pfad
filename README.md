@@ -62,7 +62,7 @@ now, know that they exist and that switching between them is free.
 | # | What | Weight | Due |
 |---|---|---|---|
 | 1 | [Why are we here?](assignments/01-why-are-we-here.md) — a reflection, published as a repository | 5% | Sun 13 Sep 2026, 23:59 |
-| 2 | Data visualisation project | 10% | week 5 |
+| 2 | [Data visualisation](assignments/02-data-visualisation.md) — numbers about a natural phenomenon, made into a picture | 10% | Sun 4 Oct 2026, 23:59 |
 | 3 | Interactive experience project | 15% | TBC |
 
 Plus participation (10%), a mid-term quiz (10%), the group project (40%), and a
@@ -78,5 +78,6 @@ can show people. Treat them accordingly.
 |---|---|
 | 01 | [Git, GitHub, and your first repository](week01/README.md) |
 | 02 | [Your repo passes the check · predict, break, fix](week02/README.md) |
+| 03 | [Numbers into pictures — data, loops, functions, matplotlib](week03/README.md) |
 
 More lands each week.
