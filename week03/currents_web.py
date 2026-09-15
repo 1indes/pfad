@@ -45,8 +45,10 @@ from folium.plugins import TimestampedGeoJson
 # ---------------------------------------------------------------------------
 
 THIN = 2                   # keep every THIN-th arrow: 1 is all 1,158 per frame, 2 is half
-ARROW_MINUTES = 60         # an arrow's length is how far the water goes in this many minutes
-PLAY_MS = 400              # milliseconds per quarter hour when playing
+MIN_KNOT = 0.4             # skip arrows slower than this: half the open sea barely moves, and
+                           # 120 hours of it would make a 25 MB page
+ARROW_MINUTES = 40         # an arrow's length is how far the water goes in this many minutes
+PLAY_MS = 150              # milliseconds per hour when playing: five days in eighteen seconds
 CENTRE = (22.30, 114.15)   # where the map opens (lat, lng — Leaflet's order, not ours)
 ZOOM = 11
 
@@ -56,7 +58,7 @@ CREDIT = "map: Esri, HERE, Garmin, © OpenStreetMap contributors · currents: Hy
 SLOW, FAST = "#2a6f7f", "#d6591d"
 
 HERE = Path(__file__).parent
-DATA = HERE / "data" / "tidal-streams-2026-09-10.csv"
+DATA = HERE / "data" / "tidal-streams-2026-09-14-to-18.csv"   # written by fetch.py
 SITE = HERE / "site"
 
 # ---------------------------------------------------------------------------
@@ -118,19 +120,19 @@ def feature(when, lng, lat, knot, deg):
 
 def main():
     slots = load_slots(DATA)
-    print(f"{DATA.name}: {len(slots)} quarter hours, {len(slots[0][1])} arrows each")
+    print(f"{DATA.name}: {len(slots)} slots, {len(slots[0][1])} arrows each")
 
     features = []
     for when, arrows in slots:                       # the loop over the slots is the film
         for lng, lat, knot, deg in arrows[::THIN]:
-            if knot > 0:
+            if knot >= MIN_KNOT:
                 features.append(feature(when, lng, lat, knot, deg))
 
     m = folium.Map(location=CENTRE, zoom_start=ZOOM, tiles=None, control_scale=True)
     folium.TileLayer(tiles=TILES, attr=CREDIT, name="Esri light grey").add_to(m)
     TimestampedGeoJson(
         {"type": "FeatureCollection", "features": features},
-        period="PT15M", duration="PT14M",             # each arrow shows for its own quarter hour
+        period="PT1H", duration="PT59M",              # each arrow shows for its own hour
         transition_time=PLAY_MS, auto_play=True, loop=True,
         add_last_point=False, date_options="YYYY-MM-DD HH:mm",
     ).add_to(m)

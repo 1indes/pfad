@@ -8,14 +8,15 @@ The tidal streams of Hong Kong, on a map, moving.
 
 Run it:
 
-    uv run currents.py            # out/currents.png and out/currents.gif — arrows
-    uv run currents.py --drift    # out/currents-drift.gif — particles carried by the water
+    uv run currents.py            # out/currents.png and out/currents.webp — arrows, one frame per hour
+    uv run currents.py --drift    # out/currents-drift.webp — particles carried by the water
 
-Week 2's `tides.csv` holds, for 24 quarter hours of one afternoon, a current arrow
-at about 1,150 points in Hong Kong waters: where it is (longitude, latitude), how
-fast the water runs (knots) and which way (a compass bearing). Week 2 threw the
-positions away and drew the arrows as rings. This script keeps them, and puts each
-arrow back where it was measured.
+`fetch.py` asks the Hydrographic Office for five days of its tidal-stream forecast,
+hour by hour: a current arrow at about 1,150 points in Hong Kong waters — where it
+is (longitude, latitude), how fast the water runs (knots) and which way (a compass
+bearing). Week 2 had one afternoon of this and drew it as rings, positions thrown
+away. This script keeps the positions and puts each arrow back where it was
+measured, on a map, and plays the five days back — ten tidal cycles in ten seconds.
 
 Three transformations do all the work, and each is a function you can read:
 
@@ -23,8 +24,8 @@ Three transformations do all the work, and each is a function you can read:
   * `to_pixel(lng, lat)`   — the round Earth onto a flat map (Web Mercator, the
                              projection every online map uses, so our arrows land
                              on somebody else's tiles)
-  * `frame(i)`             — one quarter hour into one picture; the loop over i is
-                             the animation
+  * `frame(i)`             — one hour into one picture; the loop over i is the
+                             animation
 
 The map under the arrows is stitched from Esri's light-grey tiles, the same 256 px
 squares every web map is made of. They are fetched once and saved to data/ as a
@@ -55,12 +56,12 @@ from PIL import Image
 ZOOM = 11                  # map tiles: 10 is coarse and quick, 12 is sharp and 4x the pixels
 ARROW = 22.0               # pixels of arrow per knot of current
 THIN = 1                   # draw every THIN-th arrow (2 halves the clutter)
-FPS = 6                    # frames per second in the GIF
+FPS = 12                   # frames per second: 120 hours in ten seconds
 
 PARTICLES = 2500           # --drift: how many specks of water to follow
-SPEEDUP = 6                # --drift: real distance per quarter hour, times this
-STEPS = 2                  # --drift: frames per quarter hour (48 frames for 24 slots)
-TRAIL = 6                  # --drift: how many past positions each particle leaves behind
+SPEEDUP = 3                # --drift: real distance per slot, times this
+STEPS = 1                  # --drift: frames per slot (120 frames for 120 hours)
+TRAIL = 5                  # --drift: how many past positions each particle leaves behind
 SEED = 5913
 
 TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
@@ -71,14 +72,15 @@ INK = "#1d1d1b"
 WATER = "#2a6f7f"
 FAST = "#d6591d"
 FIGSIZE = (10, 7.2)
-DPI = 60                   # of the GIFs: 60 keeps them a few MB, 100 makes them sharp and huge
+DPI = 72                   # of the films. They are animated WebP, not GIF: the same 120 frames
+                           # were 10 MB as a GIF and are under 3 MB as WebP, and GitHub plays both
 
 HERE = Path(__file__).parent
-DATA = HERE / "data" / "tidal-streams-2026-09-10.csv"      # a copy of week02/tides/tides.csv
+DATA = HERE / "data" / "tidal-streams-2026-09-14-to-18.csv"   # written by fetch.py: five days, every hour
 OUT = HERE / "out"
 
 # ---------------------------------------------------------------------------
-# The numbers. One list of arrows per quarter hour.
+# The numbers. One list of arrows per slot.
 # ---------------------------------------------------------------------------
 
 
@@ -95,6 +97,16 @@ def load_slots(path):
 # ---------------------------------------------------------------------------
 # Three transformations.
 # ---------------------------------------------------------------------------
+
+
+def slot_hours(slots):
+    """How far apart the slots are, in hours, read off the first two timestamps."""
+    if len(slots) < 2:
+        return 0.25
+    (a, _), (b, _) = slots[0], slots[1]
+    h0, m0 = int(a[11:13]), int(a[14:16])
+    h1, m1 = int(b[11:13]), int(b[14:16])
+    return ((h1 * 60 + m1) - (h0 * 60 + m0)) % (24 * 60) / 60
 
 
 def to_xy(knot, deg):
@@ -158,7 +170,7 @@ def basemap(arrows, zoom=ZOOM, pad=0.03):
 
 
 # ---------------------------------------------------------------------------
-# Picture 1 — arrows, one quarter hour per frame.
+# Picture 1 — arrows, one hour per frame.
 # ---------------------------------------------------------------------------
 
 
@@ -260,9 +272,10 @@ def drift_figure(slots):
     ax.text(0.99, 0.01, CREDIT, transform=ax.transAxes, va="bottom", ha="right",
             fontsize=7, color="#666", family="monospace")
 
-    # A knot is one nautical mile an hour: 1852 m. A quarter hour at one knot is 463 m,
-    # and one degree of latitude is about 111 km. So, per frame, per knot:
-    per_knot = 1852 / 4 / 111_000 * SPEEDUP / STEPS
+    # A knot is one nautical mile an hour: 1852 m. One slot of the data at one knot is
+    # that times the slot length, and one degree of latitude is about 111 km. So, per
+    # frame, per knot:
+    per_knot = 1852 * slot_hours(slots) / 111_000 * SPEEDUP / STEPS
     cos_lat = math.cos(math.radians(22.3))                    # a degree of longitude is shorter here
 
     def frame(i):
@@ -293,16 +306,16 @@ def drift_figure(slots):
 
 def main():
     if not DATA.is_file():
-        print(f"{DATA} is missing — it is a copy of week02/tides/tides.csv, which fetch_tides.py makes")
+        print(f"{DATA.name} is missing — run:  uv run fetch.py")
         return
     slots = load_slots(DATA)
-    print(f"{DATA.name}: {len(slots)} quarter hours, {len(slots[0][1])} arrows each")
+    print(f"{DATA.name}: {len(slots)} slots of {slot_hours(slots) * 60:.0f} minutes, {len(slots[0][1])} arrows each")
     OUT.mkdir(exist_ok=True)
 
     if "--drift" in sys.argv:
         fig, frame, n = drift_figure(slots)
         anim = FuncAnimation(fig, frame, frames=n, interval=1000 / (FPS * 2), blit=False)
-        path = OUT / "currents-drift.gif"
+        path = OUT / "currents-drift.webp"
         anim.save(path, writer=PillowWriter(fps=FPS * 2), dpi=DPI)
         print(f"wrote {path.relative_to(HERE)} — {n} frames, {path.stat().st_size // 1024} KB")
         return
@@ -313,7 +326,7 @@ def main():
     fig.savefig(still, dpi=110, facecolor=PAPER)
     print(f"wrote {still.relative_to(HERE)}")
     anim = FuncAnimation(fig, frame, frames=len(slots), interval=1000 / FPS, blit=False)
-    path = OUT / "currents.gif"
+    path = OUT / "currents.webp"
     anim.save(path, writer=PillowWriter(fps=FPS), dpi=DPI)
     print(f"wrote {path.relative_to(HERE)} — {len(slots)} frames, {path.stat().st_size // 1024} KB")
     plt.show()
