@@ -236,9 +236,17 @@ else, and each one says where in the code.
 one picture that could not be drawn by hand, and every step written down. Yours
 does not need a map. It needs the three things.
 
-Knobs: `FPS` (how fast the five days go by), `SPEEDUP` (how far the water gets per
-frame in `--drift`), `TRAIL`, `ZOOM = 12` for a sharper map (four times the tiles,
-one fetch). In `fetch.py`: `DATE`, `SLOTS`, `STEP_MINUTES` — every 15 minutes is
+**A design decision, made visible.** Every arrow is the same length; speed is
+its thickness and its colour. That is `ARROW_STYLE = "weight"`. The classic vector
+plot — speed as length too — is `ARROW_STYLE = "length"`, one word away, and it is
+worth running both: the long arrows in the fast channels pile over each other and
+the picture reads as clutter where it should read as force. Same numbers, one
+knob, a different claim. `uv run currents.py --still` draws only the PNG, which is
+the quick way to try it.
+
+Knobs: `ARROW_STYLE`, `FPS` (how fast the five days go by), `STILL` (which hour
+the PNG shows), `SPEEDUP` (how far the water gets per frame in `--drift`),
+`TRAIL`, `ZOOM = 12` for a sharper map (four times the tiles, one fetch). In `fetch.py`: `DATE`, `SLOTS`, `STEP_MINUTES` — every 15 minutes is
 what the office publishes; every 60 is what keeps the file at 7 MB.
 
 ### The same arrows as a web page

@@ -9,6 +9,7 @@ The tidal streams of Hong Kong, on a map, moving.
 Run it:
 
     uv run currents.py            # out/currents.png and out/currents.webp — arrows, one frame per hour
+    uv run currents.py --still    # only the PNG: the quick way to try the knobs
     uv run currents.py --drift    # out/currents-drift.webp — particles carried by the water
 
 `fetch.py` asks the Hydrographic Office for five days of its tidal-stream forecast,
@@ -54,7 +55,11 @@ from PIL import Image
 # ---------------------------------------------------------------------------
 
 ZOOM = 11                  # map tiles: 10 is coarse and quick, 12 is sharp and 4x the pixels
-ARROW = 22.0               # pixels of arrow per knot of current
+ARROW_STYLE = "weight"     # "weight": every arrow the same length, speed as thickness and colour
+                           # "length": speed as length too — the classic vector plot, busier
+ARROW = 26.0               # "length": pixels of arrow per knot. "weight": pixels of every arrow
+WEIGHT = 2.4               # "weight": extra line width per knot
+STILL = 8                  # which hour of the data out/currents.png shows (0 is the first)
 THIN = 1                   # draw every THIN-th arrow (2 halves the clutter)
 FPS = 12                   # frames per second: 120 hours in ten seconds
 
@@ -73,6 +78,7 @@ PAPER = "#faf8f4"
 INK = "#1d1d1b"
 WATER = "#2a6f7f"
 FAST = "#d6591d"
+RAMP = [WATER, "#8fb3a3", "#e9a23b", FAST]   # slow to fast. Straight teal-to-orange goes through mud
 FIGSIZE = (10, 7.2)
 DPI = 72                   # of the films. They are animated WebP, not GIF: the same 120 frames
                            # were 10 MB as a GIF and are under 3 MB as WebP, and GitHub plays both
@@ -198,18 +204,25 @@ def arrows_figure(slots):
         when, arrows = slots[i]
         xs, ys, us, vs, speed = [], [], [], [], []
         for lng, lat, knot, deg in arrows[::THIN]:
+            if knot == 0:
+                continue                                      # slack water has no direction
             x, y = to_pixel(lng, lat)
             u, v = to_xy(knot, deg)
+            if ARROW_STYLE == "weight":                       # same length for all: divide the speed out
+                u, v = u / knot, v / knot
             xs.append(x)
             ys.append(y)
             us.append(u * ARROW)
-            vs.append(-v * ARROW)                            # north is up, pixel y is down
+            vs.append(-v * ARROW)                             # north is up, pixel y is down
             speed.append(knot)
         if quiver is not None:
             quiver.remove()
+        widths = [0.2 + WEIGHT * k for k in speed] if ARROW_STYLE == "weight" else 0
         quiver = ax.quiver(xs, ys, us, vs, speed, angles="xy", scale_units="xy", scale=1,
-                           cmap=matplotlib.colors.LinearSegmentedColormap.from_list("sea", [WATER, FAST]),
-                           clim=(0, 3), width=0.0022, headwidth=4, headlength=5, alpha=0.9)
+                           cmap=matplotlib.colors.LinearSegmentedColormap.from_list("sea", RAMP),
+                           clim=(0, 2.5), width=0.0022, headwidth=3.2, headlength=4.5,
+                           alpha=1.0 if ARROW_STYLE == "weight" else 0.9,
+                           linewidths=widths, edgecolor="face")
         mean = sum(speed) / len(speed)
         label.set_text(f"{when}   surface current, {len(arrows)} points, mean {mean:.2f} kn")
         return quiver, label
@@ -326,10 +339,12 @@ def main():
         return
 
     fig, frame = arrows_figure(slots)
-    frame(0)
+    frame(STILL)
     still = OUT / "currents.png"
     fig.savefig(still, dpi=110, facecolor=PAPER)
     print(f"wrote {still.relative_to(HERE)}")
+    if "--still" in sys.argv:                          # just the PNG, for trying knobs quickly
+        return
     anim = FuncAnimation(fig, frame, frames=len(slots), interval=1000 / FPS, blit=False)
     path = OUT / "currents.webp"
     anim.save(path, writer=PillowWriter(fps=FPS), dpi=DPI)

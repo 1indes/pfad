@@ -47,7 +47,11 @@ from folium.plugins import TimestampedGeoJson
 THIN = 2                   # keep every THIN-th arrow: 1 is all 1,158 per frame, 2 is half
 MIN_KNOT = 0.4             # skip arrows slower than this: half the open sea barely moves, and
                            # 120 hours of it would make a 25 MB page
-ARROW_MINUTES = 40         # an arrow's length is how far the water goes in this many minutes
+ARROW_STYLE = "weight"     # "weight": every arrow the same length, speed as thickness and colour
+                           # "length": speed as length too — the classic vector plot, busier
+ARROW_MINUTES = 40         # "length": an arrow reaches where the water gets in this many minutes
+                           # "weight": where one knot of water would get in this many minutes
+WEIGHT = 2.5               # "weight": extra line width per knot
 PLAY_MS = 150              # milliseconds per hour when playing: five days in eighteen seconds
 CENTRE = (22.30, 114.15)   # where the map opens (lat, lng — Leaflet's order, not ours)
 ZOOM = 11
@@ -91,12 +95,17 @@ def to_lnglat(lng, lat, east, north, minutes):
     return (lng + dlng, lat + dlat)
 
 
+RAMP = [SLOW, "#8fb3a3", "#e9a23b", FAST]     # slow to fast; straight teal-to-orange goes through mud
+
+
 def colour(knot):
-    """SLOW to FAST, mixed by speed. Three knots is as fast as this water gets."""
-    t = min(knot / 3, 1)
-    a = tuple(int(SLOW[i:i + 2], 16) for i in (1, 3, 5))
-    b = tuple(int(FAST[i:i + 2], 16) for i in (1, 3, 5))
-    return "#%02x%02x%02x" % tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
+    """A colour off the ramp for this speed. 2.5 knots is as fast as this water gets."""
+    t = min(knot / 2.5, 1) * (len(RAMP) - 1)
+    i = min(int(t), len(RAMP) - 2)
+    f = t - i
+    a = tuple(int(RAMP[i][j:j + 2], 16) for j in (1, 3, 5))
+    b = tuple(int(RAMP[i + 1][j:j + 2], 16) for j in (1, 3, 5))
+    return "#%02x%02x%02x" % tuple(round(a[k] + (b[k] - a[k]) * f) for k in range(3))
 
 
 # ---------------------------------------------------------------------------
@@ -106,13 +115,17 @@ def colour(knot):
 
 def feature(when, lng, lat, knot, deg):
     east, north = to_xy(knot, deg)
+    if ARROW_STYLE == "weight":                          # same length for all: divide the speed out
+        east, north = east / knot, north / knot
     tip = to_lnglat(lng, lat, east, north, ARROW_MINUTES)
     return {
         "type": "Feature",
         "geometry": {"type": "LineString", "coordinates": [[lng, lat], list(tip)]},
         "properties": {
             "times": [when.replace(" ", "T") + ":00+08:00"] * 2,
-            "style": {"color": colour(knot), "weight": 1 + knot, "opacity": 0.85},
+            "style": {"color": colour(knot),
+                      "weight": 1 + (WEIGHT * knot if ARROW_STYLE == "weight" else knot),
+                      "opacity": 0.85},
             "popup": f"{when} · {knot:.2f} kn · {deg:.0f}°",
         },
     }
