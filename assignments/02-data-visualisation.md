@@ -117,6 +117,22 @@ A handful of commits across more than one day: fetching the file, printing it,
 the first ugly plot, the one that works. The ugly one is worth committing. Commit
 messages in plain language.
 
+## Publish it as a web page — optional
+
+If your picture is a web page — a [`folium`](https://python-visualization.github.io/folium/)
+map, a [Plotly](https://plotly.com/python/) chart, anything your script writes as
+`site/index.html` — copy [`pages.yml`](pages.yml) into your repo as
+`.github/workflows/pages.yml`, change the one line it tells you to, and turn on
+Pages (Settings → Pages → Source: GitHub Actions). Every push then rebuilds the
+page on GitHub's machine from the numbers in `data/` and publishes it at
+`https://YOUR-USERNAME.github.io/YOUR-REPO/`. Put that link in your README.
+
+`week03/currents_web.py` is a worked example: the same numbers as the animated
+GIF, as a map you can pan, zoom and play. Do not commit `site/` — it is output.
+A page that builds itself is not extra credit, but it is the thing the group
+project will demand of you in November, and it is easier to learn on a map of
+the sea than on a deadline.
+
 ## Submit
 
 Post the **repository URL** on Canvas: `https://github.com/YOUR-USERNAME/YOUR-REPO`

@@ -45,7 +45,7 @@ ALLOWED_DIRS = ("assets/", "images/", "img/", ".github/")
 
 # Assignment 2 additions. Code, a lockfile, the raw data, the pictures.
 ALLOWED_2 = ALLOWED | {"pyproject.toml", "uv.lock", "requirements.txt"}
-ALLOWED_DIRS_2 = ALLOWED_DIRS + ("data/", "out/")
+ALLOWED_DIRS_2 = ALLOWED_DIRS + ("data/", "out/", "site/")
 
 # Never belongs in any repo, whatever the assignment.
 NEVER = re.compile(r"(^|/)(\.DS_Store|Thumbs\.db|desktop\.ini|\.vscode/|\.idea/|__pycache__/|node_modules/|\.venv/|venv/)", re.I)

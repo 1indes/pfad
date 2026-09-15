@@ -231,6 +231,31 @@ does not need a map. It needs the three things.
 Knobs: `SPEEDUP` (how far the water gets per frame), `TRAIL`, `ZOOM = 12` for a
 sharper map (four times the tiles, one fetch).
 
+### The same arrows as a web page
+
+```bash
+uv run currents_web.py        # writes site/index.html — open it in a browser
+```
+
+No window, no PNG. Python writes one HTML file and stops; the browser does the
+drawing. `folium` is a Python library that generates the JavaScript for
+[Leaflet](https://leafletjs.com/), the map library under most maps on the web.
+The page you get pans, zooms, and has a play button: the 24 quarter hours are a
+time slider, every arrow is a line between two points on the Earth, and the
+projection that `currents.py` wrote by hand in `to_pixel()` is done by Leaflet.
+
+Open `site/index.html` in a browser. That is the whole test — if it plays on your
+machine it will play on anybody's, because the file carries everything except the
+map tiles. `site/` is not committed: it is output, and it is nearly 5 MB.
+
+**This is the version that can be published.** A script that writes a web page is
+exactly the shape GitHub Pages wants — see step 8 below, and
+[`assignments/pages.yml`](../assignments/pages.yml). Test it locally, push, and
+GitHub builds the same page on its own machine and puts it on a URL.
+
+Knobs: `THIN = 1` for all 1,158 arrows per frame (the file doubles), `ARROW_MINUTES`
+for how far each arrow reaches, `PLAY_MS` for the speed of the film.
+
 ---
 
 ## 1:10 — Same idea, messier
@@ -372,6 +397,33 @@ https://github.com/YOUR-USERNAME/YOUR-REPO
 
 Canvas records the address; what gets marked is what is in the repo at Sunday
 4 October, 23:59.
+
+### 8. Publish it as a page — optional, and worth doing
+
+If your picture is a web page — a `folium` map, a Plotly chart, anything your
+script writes as `site/index.html` — GitHub can build and publish it for you on
+every push:
+
+```bash
+mkdir -p .github/workflows
+curl -fsSL https://raw.githubusercontent.com/sd5913/pfad/2026/assignments/pages.yml -o .github/workflows/pages.yml
+```
+
+Open the file, change the one line marked `CHANGE ME` to `uv run your-script.py`,
+commit, push. Then, once, on GitHub: **Settings → Pages → Source: GitHub
+Actions**. Two minutes later your page is at
+`https://YOUR-USERNAME.github.io/YOUR-REPO/`, and the link goes in your README.
+
+Three things to notice, because they are the whole idea of a build:
+
+- **The workflow runs the same command you ran.** `uv run` on GitHub's machine,
+  with the `# /// script` block fetching the same libraries. If it works on your
+  laptop and not there, the script is reading something that only exists on your
+  laptop — usually a file that is not committed.
+- **`site/` is never committed.** It is made fresh on every push from the
+  numbers in `data/`. Add `site/` to `.gitignore`.
+- **A red cross is information.** Open the Actions tab, read the log from the
+  bottom up, and the line that failed is the line to fix.
 
 ---
 
