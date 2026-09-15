@@ -191,6 +191,46 @@ Three things in this script that will be in your assignment:
 Knob to try: `MIN_MAG = 4.5`, and watch how much of the picture was small tremors
 in Alaska and California.
 
+### The week 2 arrows, back where they were measured
+
+```bash
+uv run currents.py            # out/currents.gif — arrows, one quarter hour per frame
+uv run currents.py --drift    # out/currents-drift.gif — specks of water carried along
+```
+
+![the tidal streams of Hong Kong at 14:00](out/currents.png)
+
+Week 2's `tides.csv` had four numbers per point — longitude, latitude, speed,
+bearing — and the rings threw the first two away. This script keeps them. Every
+arrow goes back to the place in the sea it describes, on top of a real map, and
+the 24 quarter hours become 24 frames.
+
+**Three transformations, three functions, and you have read all of them today:**
+
+- `to_xy(knot, deg)` — a compass bearing into an (east, north) vector. The same
+  function as the tide clock, with north where 12 o'clock was.
+- `to_pixel(lng, lat)` — the round Earth onto the flat tile grid every web map
+  uses. Twelve lines, and it is the whole reason the arrows land on Esri's tiles
+  instead of somewhere near them. `earthquakes.py` skipped this; here it matters.
+- `frame(i)` — one quarter hour into one picture. The loop over `i` is the film.
+
+`--drift` is the artist's path on the same numbers: 2,500 specks of water, each
+one moved every frame by whichever arrow is nearest, leaving a short trail. Nobody
+drew the stream lines. They are where the water goes. Read `nearest()` — it is
+a loop over nine cells of a grid, which is how you find the closest of 1,158
+things 2,500 times a frame without doing 2,500 × 1,158 distances.
+
+The map tiles are fetched once and stitched into `data/basemap-*.png`, so this,
+too, runs with the wifi off. That is the third `data/` file in this folder that
+came from somewhere else, and each one says where in the code.
+
+**This is what an assignment 2 repo looks like** — one published file of numbers,
+one picture that could not be drawn by hand, and every step written down. Yours
+does not need a map. It needs the three things.
+
+Knobs: `SPEEDUP` (how far the water gets per frame), `TRAIL`, `ZOOM = 12` for a
+sharper map (four times the tiles, one fetch).
+
 ---
 
 ## 1:10 — Same idea, messier
