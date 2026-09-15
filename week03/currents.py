@@ -59,7 +59,9 @@ THIN = 1                   # draw every THIN-th arrow (2 halves the clutter)
 FPS = 12                   # frames per second: 120 hours in ten seconds
 
 PARTICLES = 2500           # --drift: how many specks of water to follow
-SPEEDUP = 3                # --drift: real distance per slot, times this
+SPEEDUP = 1.5              # --drift: real distance per slot, times this
+SUBSTEPS = 4               # --drift: moves per frame. Water an hour on is not where one straight
+                           # jump puts it: ask the nearest arrow again every quarter of the way
 STEPS = 1                  # --drift: frames per slot (120 frames for 120 hours)
 TRAIL = 5                  # --drift: how many past positions each particle leaves behind
 SEED = 5913
@@ -275,7 +277,7 @@ def drift_figure(slots):
     # A knot is one nautical mile an hour: 1852 m. One slot of the data at one knot is
     # that times the slot length, and one degree of latitude is about 111 km. So, per
     # frame, per knot:
-    per_knot = 1852 * slot_hours(slots) / 111_000 * SPEEDUP / STEPS
+    per_knot = 1852 * slot_hours(slots) / 111_000 * SPEEDUP / STEPS / SUBSTEPS
     cos_lat = math.cos(math.radians(22.3))                    # a degree of longitude is shorter here
 
     def frame(i):
@@ -283,14 +285,17 @@ def drift_figure(slots):
         when, _ = slots[slot]
         cells = fields[slot]
         for n, p in enumerate(particles):
-            arrow = nearest(cells, p[0], p[1])
-            if arrow is None:                                 # ran aground, or out of the data
+            for _ in range(SUBSTEPS):
+                arrow = nearest(cells, p[0], p[1])
+                if arrow is None:                             # ran aground, or out of the data
+                    break
+                east, north = to_xy(arrow[2], arrow[3])
+                p[0] += east * per_knot / cos_lat
+                p[1] += north * per_knot
+            if arrow is None:
                 particles[n] = spawn()
                 trails[n] = [to_pixel(*particles[n])]
                 continue
-            east, north = to_xy(arrow[2], arrow[3])
-            p[0] += east * per_knot / cos_lat
-            p[1] += north * per_knot
             trails[n].append(to_pixel(p[0], p[1]))
             del trails[n][:-TRAIL]
         lines.set_segments([t for t in trails if len(t) > 1])
