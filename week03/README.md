@@ -251,7 +251,11 @@ map tiles. `site/` is not committed: it is output, and it is nearly 5 MB.
 **This is the version that can be published.** A script that writes a web page is
 exactly the shape GitHub Pages wants — see step 8 below, and
 [`assignments/pages.yml`](../assignments/pages.yml). Test it locally, push, and
-GitHub builds the same page on its own machine and puts it on a URL.
+GitHub builds the same page on its own machine and puts it on a URL. It has been
+done: [`sd5913/tidal-streams`](https://github.com/sd5913/tidal-streams) is these
+two scripts as a finished assignment 2 repo, and its page is live at
+<https://sd5913.github.io/tidal-streams/>. Read its README and PROCESS.md before
+you write yours.
 
 Knobs: `THIN = 1` for all 1,158 arrows per frame (the file doubles), `ARROW_MINUTES`
 for how far each arrow reaches, `PLAY_MS` for the speed of the film.

@@ -127,8 +127,11 @@ Pages (Settings → Pages → Source: GitHub Actions). Every push then rebuilds 
 page on GitHub's machine from the numbers in `data/` and publishes it at
 `https://YOUR-USERNAME.github.io/YOUR-REPO/`. Put that link in your README.
 
-`week03/currents_web.py` is a worked example: the same numbers as the animated
-GIF, as a map you can pan, zoom and play. Do not commit `site/` — it is output.
+[`sd5913/tidal-streams`](https://github.com/sd5913/tidal-streams) is a complete
+worked example of this assignment, with the page live at
+<https://sd5913.github.io/tidal-streams/>: the same numbers as the animated GIF,
+as a map you can pan, zoom and play. Its `README.md` and `PROCESS.md` are the
+shape yours should have. Do not commit `site/` — it is output.
 A page that builds itself is not extra credit, but it is the thing the group
 project will demand of you in November, and it is easier to learn on a map of
 the sea than on a deadline.
