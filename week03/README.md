@@ -342,15 +342,24 @@ If it needs a login, a key, or a payment, it is the wrong file for this week.
 
 ### 2. Make the repo
 
-<https://github.com/new>. Your own account. **Public.** Name it after the
+<https://github.com/sd5913/assignment-2-template> → **Use this template** →
+**Create a new repository**. Your own account. **Public.** Name it after the
 phenomenon — `tidal-clock`, `quakes-this-month`, `kowloon-rainfall` — not
-`assignment2`. Tick *Add a README file*, then clone it and open **that folder** in
-VS Code.
+`assignment2`. Then clone it and open **that folder** in VS Code.
+
+It runs before you have changed anything:
+
+```bash
+uv run fetch.py
+uv run plot.py
+```
+
+fetches the Observatory's daily mean temperature for 2026 into `data/` and draws
+it into `out/plot.png`. That is what a working repo looks like. Now take it apart.
 
 ### 3. Fetch once, save the raw file, commit it
 
-Copy `fetch()` out of `earthquakes.py` or `typhoons.py` and change the URL. It
-should:
+`fetch.py` is in the template; change `URL` and `FILE` at the top. It:
 
 1. check whether the file is already in `data/`;
 2. if not, ask for it once, with a `User-Agent`;
@@ -368,8 +377,8 @@ Commit that script.
 
 ### 5. One picture
 
-Start from whichever of these scripts is closest to what you want and change it
-until it is about your numbers. That is allowed and it is the fastest way in. What
+Start from the template's `plot.py`, or whichever of the tutorial scripts is
+closest to what you want, and change it until it is about your numbers. That is allowed and it is the fastest way in. What
 is *not* allowed is handing in a tide chart.
 
 Every script you commit carries its own dependency block:
@@ -393,7 +402,9 @@ uv run https://raw.githubusercontent.com/sd5913/pfad/2026/assignments/check.py -
 Same script as assignment 1, different spec. `--assignment 2` is not optional — get
 it wrong and it will tell you your data folder is a file that does not belong.
 
-Then let GitHub run it on every push:
+The template already has `.github/workflows/check.yml`, so GitHub ran the same
+check the moment you first pushed — look at the **Actions** tab. If you made the
+repo by hand instead:
 
 ```bash
 mkdir -p .github/workflows

@@ -55,7 +55,13 @@ been done, in front of you, in week 3.
 ## What to hand in
 
 A **public GitHub repository** on your own account, named after the phenomenon
-(`tidal-clock`, `quakes-this-month`, `kowloon-rainfall`), not `assignment2`:
+(`tidal-clock`, `quakes-this-month`, `kowloon-rainfall`), not `assignment2`.
+
+Start from the template: open [`sd5913/assignment-2-template`](https://github.com/sd5913/assignment-2-template),
+press **Use this template → Create a new repository**, and you have this tree, the
+check workflow, and a `fetch.py` and `plot.py` that already run — on the Observatory's
+daily temperature, which is an example and not your phenomenon. Then replace every
+line of it.
 
 ```
 your-repo/
@@ -152,9 +158,10 @@ uv run https://raw.githubusercontent.com/sd5913/pfad/2026/assignments/check.py -
 `--assignment 2` is not optional — without it you get assignment 1's spec and a
 confusing list about bibliographies.
 
-To have GitHub run it on every push, copy [`02-check.yml`](02-check.yml) into your
-repo as `.github/workflows/check.yml` and push. The **Actions** tab then shows a
-green tick or a red cross with the same checklist.
+The template already carries the workflow, so GitHub has run it on every push since
+your first. If you built the repo by hand, copy [`02-check.yml`](02-check.yml) into it
+as `.github/workflows/check.yml` and push. The **Actions** tab then shows a green tick
+or a red cross with the same checklist.
 
 It checks shape, not quality: the files exist, the README is long enough and shows
 an image, every script says what it needs, `data/` has something in it, a picture
