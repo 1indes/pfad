@@ -216,7 +216,7 @@ should know both exist:
 Undo your experiment before moving on:
 
 ```bash
-git reset --hard origin/main
+git reset --hard origin/2026
 ```
 
 ## Step 5 — Your first repository
@@ -253,10 +253,10 @@ copy ..\pfad\week01\first-repo\sketch.py .     # Windows PowerShell
 Run it:
 
 ```bash
-python sketch.py
+uv run sketch.py
 ```
 
-(On Windows that may be `py sketch.py`.) It writes `sketch.svg`. Open that file —
+It writes `sketch.svg`. Open that file —
 double-click it, or right-click → *Open with* → your browser.
 
 What you are looking at is a homage to **Georg Nees' *Schotter*, 1968** — one of

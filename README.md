@@ -60,6 +60,17 @@ now, know that they exist and that switching between them is free.
 > [`venetanji/pfad`](https://github.com/venetanji/pfad) if you would rather browse
 > it as its own repository.
 
+## Reference
+
+Five pages the weekly tutorials assume and do not repeat — index at
+[`reference/README.md`](reference/README.md).
+
+- [`reference/files.md`](reference/files.md) — folders, paths, and the names that start with a dot.
+- [`reference/git.md`](reference/git.md) — the six git commands you use, branches, and what the check looks at.
+- [`reference/uv.md`](reference/uv.md) — what `uv run` does, and the `# /// script` block every script carries.
+- [`reference/python.md`](reference/python.md) — every Python construct taught so far, with the slide it came from.
+- [`reference/errors.md`](reference/errors.md) — the error message you are looking at, what it means, what to do.
+
 ## Assignments
 
 | # | What | Weight | Due |
