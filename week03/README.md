@@ -492,6 +492,23 @@ the week 4 lecture opens with everyone uploading their first plot.
 
 ---
 
+## 1:55 — Co-design next week
+
+Next week's slides are being written in the open, as a draft pull request:
+<https://github.com/sd5913/teaching/pull/3>. The outline is in its description.
+
+Read it, then do one of these before you leave:
+
+- react 👍 to the comment that names what you want more of, or
+- write a comment: something you want covered, or something from this week you
+  want clarified, in a sentence.
+
+Press **Watch** on the repository while you are there and GitHub tells you when
+the pull request moves. This is how the course gets designed with you rather
+than at you, and it takes two minutes.
+
+---
+
 ## Before you leave
 
 - [ ] `uv run tides.py` printed twenty-four bars on your machine.
@@ -500,6 +517,7 @@ the week 4 lecture opens with everyone uploading their first plot.
 - [ ] `data/` in it holds a raw file you fetched, committed.
 - [ ] One `.py`, one picture in `out/`, both committed.
 - [ ] You can say in one sentence what your picture hides.
+- [ ] You reacted or commented on next week's pull request.
 
 Sunday 4 October 2026, 23:59.
 
