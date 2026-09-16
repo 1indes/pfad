@@ -355,7 +355,21 @@ uv run plot.py
 ```
 
 fetches the Observatory's daily mean temperature for 2026 into `data/` and draws
-it into `out/plot.png`. That is what a working repo looks like. Now take it apart.
+it into `out/plot.png`. That is what a working repo looks like. Now take it apart,
+in the terminal first:
+
+```bash
+ls -a            # Windows PowerShell: ls -Force
+cat .gitignore
+```
+
+Three names start with a dot, and Finder and Explorer hide all three. `.git/` is
+the history. `.github/workflows/check.yml` is what GitHub runs on every push.
+`.gitignore` is the list of what never gets committed. Then open `plot.py` and read
+the three lines under the imports: `HERE` is the folder the script is in, and
+`data/` and `out/` are addresses built from it, so the script works wherever you run
+it from. If any of that was news, [`reference/files.md`](../reference/files.md) is ten minutes and it
+will save you an hour on Sunday.
 
 ### 3. Fetch once, save the raw file, commit it
 

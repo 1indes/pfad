@@ -24,6 +24,9 @@ git clone https://github.com/sd5913/pfad
 cd pfad
 ```
 
+New to the terminal, to folders and paths, or to files whose names start with a
+dot? [`reference/files.md`](reference/files.md) is ten minutes and every week assumes it.
+
 ## This repo has two branches, and that is on purpose
 
 ```

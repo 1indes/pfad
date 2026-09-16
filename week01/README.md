@@ -153,6 +153,9 @@ cd pfad
 code .                # opens the folder in VS Code
 ```
 
+> `cd`, `ls`, `..`, and why some names start with a dot: [`reference/files.md`](../reference/files.md),
+> ten minutes, whenever a command on this page is a mystery.
+
 Each week, before class, get the new material with:
 
 ```bash

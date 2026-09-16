@@ -80,7 +80,8 @@ Pick the line that is true for you:
 
 Then open **that folder** in VS Code (*File → Open Folder*) and open a terminal in
 it (*Terminal → New Terminal*). Every command below runs there. If `git status`
-says "not a git repository", you are in the wrong folder.
+says "not a git repository", you are in the wrong folder. Folders, paths and the
+names that start with a dot, in ten minutes: [`reference/files.md`](../reference/files.md).
 
 ### 2. The four git words
 
