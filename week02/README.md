@@ -218,9 +218,8 @@ Canvas records the address. What gets marked is what is in the repo at Sunday
 23:59, and the check runs again then. Submitting today means you cannot forget
 to on Sunday.
 
-Then screenshot the Actions page — tick, cross, or the list — and upload it to
-the ClassPoint question on the last slide. That is the attendance signal, and it
-tells me who still needs help pushing.
+Then open the Actions page — tick, cross, or the list — and show it to whoever
+is running the room. That is how we find out who still needs help pushing.
 
 ---
 

@@ -450,17 +450,15 @@ Three things to notice, because they are the whole idea of a build:
 
 ---
 
-## 1:50 — Upload your first plot
+## 1:50 — Swap screens
 
-Screenshot or export the picture and upload it to the ClassPoint question on the
-last slide. Caption, **50 characters or fewer**:
+Your plot on your screen, your neighbour's on theirs. Swap seats and say one
+sentence each about the other picture: what does it show, and what does it hide?
+The second question is the one assignment 2 marks. If the honest answer is "it
+hides that I have no data yet", that is what the last ten minutes are for.
 
-```
-phenomenon · source
-```
-
-for example `Quarry Bay tide · HKO hourly heights`. That is the attendance signal
-and it is how I find out whose phenomenon has no data behind it yet.
+Your URL on Canvas is the record of today. Keep the picture and know its source:
+the week 4 lecture opens with everyone uploading their first plot.
 
 ---
 
@@ -471,7 +469,7 @@ and it is how I find out whose phenomenon has no data behind it yet.
 - [ ] Your assignment 2 repo exists, is public, and its URL is on Canvas.
 - [ ] `data/` in it holds a raw file you fetched, committed.
 - [ ] One `.py`, one picture in `out/`, both committed.
-- [ ] Your plot is uploaded to ClassPoint.
+- [ ] You can say in one sentence what your picture hides.
 
 Sunday 4 October 2026, 23:59.
 
