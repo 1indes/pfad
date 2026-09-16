@@ -21,6 +21,11 @@ git pull         # this folder arrives
 cd week03
 ```
 
+`uv run` had one mention last week and it is every command today. It fetches an
+interpreter if there is none, reads the `# /// script` block at the top of the file,
+installs what that block names, and runs. Nothing to install first, no `python`, no
+`pip`. [`reference/uv.md`](../reference/uv.md) is the ten-minute version.
+
 ---
 
 ## 0:00 — Twenty-four numbers
