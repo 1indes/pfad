@@ -80,7 +80,8 @@ Pick the line that is true for you:
 
 Then open **that folder** in VS Code (*File → Open Folder*) and open a terminal in
 it (*Terminal → New Terminal*). Every command below runs there. If `git status`
-says "not a git repository", you are in the wrong folder.
+says "not a git repository", you are in the wrong folder. Folders, paths and the
+names that start with a dot, in ten minutes: [`reference/files.md`](../reference/files.md).
 
 ### 2. The four git words
 
@@ -218,9 +219,8 @@ Canvas records the address. What gets marked is what is in the repo at Sunday
 23:59, and the check runs again then. Submitting today means you cannot forget
 to on Sunday.
 
-Then screenshot the Actions page — tick, cross, or the list — and upload it to
-the ClassPoint question on the last slide. That is the attendance signal, and it
-tells me who still needs help pushing.
+Then open the Actions page — tick, cross, or the list — and show it to whoever
+is running the room. That is how we find out who still needs help pushing.
 
 ---
 

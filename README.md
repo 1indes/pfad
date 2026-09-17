@@ -23,6 +23,9 @@ git clone https://github.com/sd5913/pfad
 cd pfad
 ```
 
+New to the terminal, to folders and paths, or to files whose names start with a
+dot? [`reference/files.md`](reference/files.md) is ten minutes and every week assumes it.
+
 ## This repo has two branches, and that is on purpose
 
 ```
@@ -56,12 +59,23 @@ now, know that they exist and that switching between them is free.
 > [`venetanji/pfad`](https://github.com/venetanji/pfad) if you would rather browse
 > it as its own repository.
 
+## Reference
+
+Five pages the weekly tutorials assume and do not repeat — index at
+[`reference/README.md`](reference/README.md).
+
+- [`reference/files.md`](reference/files.md) — folders, paths, and the names that start with a dot.
+- [`reference/git.md`](reference/git.md) — the six git commands you use, branches, and what the check looks at.
+- [`reference/uv.md`](reference/uv.md) — what `uv run` does, and the `# /// script` block every script carries.
+- [`reference/python.md`](reference/python.md) — every Python construct taught so far, with the slide it came from.
+- [`reference/errors.md`](reference/errors.md) — the error message you are looking at, what it means, what to do.
+
 ## Assignments
 
 | # | What | Weight | Due |
 |---|---|---|---|
 | 1 | [Why are we here?](assignments/01-why-are-we-here.md) — a reflection, published as a repository | 5% | Sun 13 Sep 2026, 23:59 |
-| 2 | Data visualisation project | 10% | week 5 |
+| 2 | [Data visualisation](assignments/02-data-visualisation.md) — numbers about a natural phenomenon, made into a picture | 10% | Sun 4 Oct 2026, 23:59 |
 | 3 | Interactive experience project | 15% | TBC |
 
 Plus participation (10%), a mid-term quiz (10%), the group project (40%), and a
@@ -76,5 +90,6 @@ can show people. Treat them accordingly.
 | Week | Topic |
 |---|---|
 | 01 | [Git, GitHub, and your first repository](week01/README.md) |
+| 02 | [Your repo passes the check · predict, break, fix](week02/README.md) |
 
 More lands each week.

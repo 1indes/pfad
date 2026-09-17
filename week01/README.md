@@ -153,6 +153,9 @@ cd pfad
 code .                # opens the folder in VS Code
 ```
 
+> `cd`, `ls`, `..`, and why some names start with a dot: [`reference/files.md`](../reference/files.md),
+> ten minutes, whenever a command on this page is a mystery.
+
 Each week, before class, get the new material with:
 
 ```bash
@@ -213,7 +216,7 @@ should know both exist:
 Undo your experiment before moving on:
 
 ```bash
-git reset --hard origin/main
+git reset --hard origin/2026
 ```
 
 ## Step 5 — Your first repository
@@ -250,10 +253,10 @@ copy ..\pfad\week01\first-repo\sketch.py .     # Windows PowerShell
 Run it:
 
 ```bash
-python sketch.py
+uv run sketch.py
 ```
 
-(On Windows that may be `py sketch.py`.) It writes `sketch.svg`. Open that file —
+It writes `sketch.svg`. Open that file —
 double-click it, or right-click → *Open with* → your browser.
 
 What you are looking at is a homage to **Georg Nees' *Schotter*, 1968** — one of

@@ -8,7 +8,7 @@ language he did not have, on a machine he would have envied.
 
 Run it:
 
-    python sketch.py
+    uv run sketch.py
 
 It writes sketch.svg next to this file. Open that in a browser (or drag it into
 VS Code). Nothing to install — this uses only what ships with Python.
