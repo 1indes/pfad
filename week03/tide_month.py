@@ -32,7 +32,7 @@ from tides import CLASS_DAY, load_year
 # ---------------------------------------------------------------------------
 
 MONTH = None               # None = this month. Or a number: 1 is January, 9 September.
-COLOURS = "viridis"        # try "Blues", "magma", "coolwarm", "cividis"
+COLOURS = "coolwarm"       # try "viridis", "Blues", "magma", "cividis"
 PAPER = "#faf8f4"
 INK = "#1d1d1b"
 WATER = "#2a6f7f"

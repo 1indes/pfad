@@ -90,6 +90,5 @@ can show people. Treat them accordingly.
 | Week | Topic |
 |---|---|
 | 01 | [Git, GitHub, and your first repository](week01/README.md) |
-| 02 | [Your repo passes the check · predict, break, fix](week02/README.md) |
 
 More lands each week.
