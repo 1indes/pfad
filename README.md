@@ -16,8 +16,7 @@ runs, so expect it to grow week by week — `git pull` before each class.
 2. **Work through [`week01/README.md`](week01/README.md).** It takes you from
    "no GitHub account" to "my first repository is published".
 3. **Read [`assignments/01-why-are-we-here.md`](assignments/01-why-are-we-here.md).**
-   Your first assignment is due at the end of week 2. Before you submit, run
-   [the check](assignments/check.py) inside your repo — it tells you what is missing.
+   Your first assignment is due at the end of week 2.
 
 ```bash
 git clone https://github.com/sd5913/pfad
@@ -77,6 +76,5 @@ can show people. Treat them accordingly.
 | Week | Topic |
 |---|---|
 | 01 | [Git, GitHub, and your first repository](week01/README.md) |
-| 02 | [Your repo passes the check · predict, break, fix](week02/README.md) |
 
 More lands each week.
