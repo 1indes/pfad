@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Polling and callbacks</title>
+  <style>
+    body { max-width: 850px; margin: 3rem auto; padding: 0 1.5rem; font: 1.15rem/1.6 system-ui, sans-serif; background: #faf8f4; color: #000b1c; }
+    section { background: white; padding: 1.5rem; margin: 1rem 0; }
+    input { width: 100%; }
+    output { display: block; font-size: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Same control, two ways to respond</h1>
+  <p>Move each slider. Which result follows your hand? Read the script at the bottom of this file.</p>
+  <section>
+    <label for="polled">Polling: check once per second</label>
+    <input id="polled" type="range" min="0" max="100" value="50">
+    <output id="poll-result" for="polled">50</output>
+  </section>
+  <section>
+    <label for="event">Callback: respond to an input event</label>
+    <input id="event" type="range" min="0" max="100" value="50">
+    <output id="event-result" for="event">50</output>
+  </section>
+  <p>Change 1000 to 100 in the polling timer and reload. What improves? What extra work does it do?</p>
+  <p>The timer itself uses a callback. It counts as polling here because that callback repeatedly checks the value, even when nobody moves the slider.</p>
+  <script>
+    const polled = document.querySelector("#polled");
+    const eventSlider = document.querySelector("#event");
+    setInterval(() => {
+      document.querySelector("#poll-result").value = polled.value;
+    }, 1000);
+    eventSlider.addEventListener("input", () => {
+      document.querySelector("#event-result").value = eventSlider.value;
+    });
+  </script>
+</body>
+</html>

@@ -136,6 +136,51 @@ plt.savefig("out/tide-day.png", dpi=150)
 plt.show()
 ```
 
+## Week 4: a control supplies a value
+
+```python
+day = st.selectbox("Day", [row["day"] for row in rows])
+record = select_day(rows, day)
+```
+
+The selector returns an integer, just as another function might. Streamlit reruns
+the script when the control changes. In `week04/app.py`, `pd.DataFrame` gives the
+24 heights a column name and an hour index before `st.line_chart` draws them.
+You only need that small use of pandas today.
+
+A `while` loop repeats while its condition is true; a polling loop repeatedly
+checks for input. A **callback** is a function you give to a library to call when
+an event arrives. `update_chart` names the function; `update_chart()` calls it now.
+The browser examples use JavaScript callbacks; their syntax is not Python.
+
+## Week 4: a URL calls a function
+
+```python
+@app.get("/tides")
+def tides(month: int):
+    return select_month(load_rows(), month)
+```
+
+The `@app.get(...)` line is a **decorator**. Here it registers the function with
+FastAPI so a GET request to `/tides` can call it. `month: int` is a type annotation:
+Python alone does not enforce it, but FastAPI reads it to parse and validate the
+query value. Decorators can change runtime behaviour; they are not just comments.
+The completed route adds `Query(ge=1, le=12)` to require a month from 1 to 12.
+
+## Week 4: check a response
+
+```python
+with urlopen(API, timeout=10) as response:
+    assert response.status == 200
+    rows = load(response)
+assert len(rows[0]["heights"]) == 24
+```
+
+`with` closes the response when the indented block ends, even if something fails.
+`assert` raises an error if its condition is false; pytest reports it as a failing
+test. `timeout=10` keeps a request from waiting indefinitely. Read the complete
+[API test](../week04/tdd/test_api.py) for its imports and URL.
+
 ## Things that look like Python but are not yet in this course
 
 A model writes these without being asked. None is wrong; none has been taught. Ask
@@ -144,15 +189,11 @@ what one does until you can say it in a sentence, or ask for the version without
 | Not yet | What you have instead |
 |---|---|
 | `class`, `self` | a `def` |
-| `while` | `for` over a list |
 | `try` / `except` | let it crash and read the message — it names the line |
 | `lambda` | a `def` with a name |
 | `import numpy` | a list, and a loop |
-| `import pandas` | `json.load`, and a list |
-| `with open(...) as f` | real, but never explained — the template's `plot.py` has one |
 | `%`, `//`, `continue` | seen on a slide, never explained. Ask before you keep one |
 | `{k: v for ...}`, `set()` | a dict, and a list you build with `.append()` |
-| type hints, `->`, decorators | nothing. They change what a reader knows, not what runs |
 
 Keeping a line you cannot explain is allowed. Saying so in your `PROCESS.md` is
 what the mark is for.

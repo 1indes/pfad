@@ -1,0 +1,25 @@
+# The Week 4 test example: repeat the local check on pushes and pull requests.
+name: Week 4 tests
+
+on:
+  push:
+    branches: [2026]
+  pull_request:
+    branches: [2026]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - name: Run deterministic tests
+        run: uv run --with pytest --with streamlit --with pandas python -m pytest week04/tests
+      - name: Validate the Python Worker bundle
+        run: uv run pywrangler deploy --dry-run

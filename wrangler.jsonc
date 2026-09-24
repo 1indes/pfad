@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sd5913-week04-tides",
+  "main": "week04/api.py",
+  // Sep 4 includes ASGI support and keeps the course on Python 3.13.
+  "compatibility_date": "2026-09-04",
+  "compatibility_flags": ["python_workers"],
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.json"],
+      "fallthrough": true
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

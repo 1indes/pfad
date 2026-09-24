@@ -6,6 +6,11 @@
 
 **/.env
 **/.python-version
+.wrangler/
+.venv-workers/
+python_modules/
+pylock.toml
+node_modules/
 
 # editor / os noise
 .DS_Store

@@ -4,7 +4,7 @@
 uv run script.py
 ```
 
-That is the only Python command in this course. Not `python`, not `pip`, not
+That is the usual way to run a Python script in this course. Not `python`, not `pip`, not
 `python3`, not `source .venv/bin/activate`. One line, on Windows and on macOS, in
 the lab and on your laptop and on GitHub's machine.
 
@@ -177,8 +177,26 @@ megabytes, rebuilt in seconds, different on every machine. It is output, not wor
 course and why the check flags a repo that contains one. Same reasoning as
 `__pycache__/`: see [`files.md`](files.md).
 
-You do not need to make a `pyproject.toml` for anything in this course. One script,
-one block, `uv run`.
+For the individual plotting scripts, one file, one block, and `uv run` are enough.
+Week 4 also supplies a `pyproject.toml` and `uv.lock` at the repository root for
+the Python Worker. `uv run pywrangler dev` reads that project configuration.
+
+## Week 4: running a tool or module
+
+Sometimes `uv run` launches a tool which then opens your file:
+
+```bash
+uv run --with streamlit --with pandas streamlit run week04/app.py
+uv run --with pytest python -m pytest week04/tdd/test_api.py
+uv run python -m http.server 8000 --bind 127.0.0.1
+```
+
+`--with` adds a library for that command. In the first line, Streamlit opens
+`app.py`; uv is not running the file directly, so it does not read that file's
+script dependency block. That is why the libraries are also named in the command.
+`python -m` runs an installed module using the Python managed by uv; it does not
+use an arbitrary system Python. Leave a server's terminal open while using it,
+and press **Ctrl+C** there to stop it.
 
 ## If uv itself is not there
 

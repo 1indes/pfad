@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quarry Bay · browser and API</title>
+  <style>
+    body { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem; font: 1.1rem/1.6 system-ui, sans-serif; color: #000b1c; background: #faf8f4; }
+    h1 { line-height: 1.1; }
+    .controls { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    select { font: inherit; padding: .3rem; }
+    svg { width: 100%; background: white; }
+    #chart[hidden] { display: none; }
+    #status { min-height: 1.6em; }
+    a { color: #00544c; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <p>SD5913 · Week 04 · Frontend / backend</p>
+  <h1>Quarry Bay, one day at a time</h1>
+  <p>The browser asks for a month of records. Choosing a day redraws the chart using those records.</p>
+  <div class="controls">
+    <label>Month <select id="month" aria-label="Month"></select></label>
+    <label>Day <select id="day" aria-label="Day" disabled></select></label>
+  </div>
+  <p id="status" role="status" aria-live="polite"></p>
+  <svg id="chart" viewBox="0 0 900 360" role="img" aria-labelledby="chart-title" hidden>
+    <title id="chart-title">24 hourly tide heights</title>
+    <g id="axes"></g>
+    <polyline id="line" fill="none" stroke="#00544c" stroke-width="3"></polyline>
+  </svg>
+  <p id="caption"></p>
+  <p>Source: Hong Kong Observatory · Quarry Bay · 2026 · heights in metres above chart datum.</p>
+  <p><a id="request-link">Open the JSON request</a> · <a href="../events/">Try polling and callbacks</a></p>
+  <script src="app.js"></script>
+</body>
+</html>

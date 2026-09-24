@@ -1,0 +1,26 @@
+# Deliberate data refresh: validate first, then commit the new raw snapshot.
+name: Refresh tide data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+      - name: Fetch and validate the HKO file
+        run: uv run week04/refresh_data.py
+      - name: Run tests against fixtures
+        run: uv run --with pytest --with streamlit --with pandas python -m pytest week04/tests
+      - name: Commit the refreshed snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add week03/data/tides-QUB-2026.json week04/tides-QUB-2026.json
+          git diff --cached --quiet || git commit -m "Refresh the tide data snapshot"
+          git push
