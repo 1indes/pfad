@@ -1,0 +1,6 @@
+out/
+speech/out/
+# Consented local inputs stay private; do not commit recordings.
+*.wav
+*.mp3
+*.flac

@@ -1,0 +1,11 @@
+# Optional Week 6 environment only. Python 3.12; not the root Week 4 Worker.
+faster-whisper==1.2.1
+kokoro==0.9.4
+sounddevice==0.5.3
+soundfile>=0.13,<0.14
+numpy>=1.26,<3
+# Keep Kokoro's original API generation; this is not a fully tested lockfile.
+torch>=2.6,<3
+transformers>=4.48,<5
+# Preinstall English resources so Kokoro does not invoke an implicit installer.
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl

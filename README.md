@@ -103,5 +103,6 @@ can show people. Treat them accordingly.
 | 03 | [Numbers into pictures — data, loops, functions, matplotlib](week03/README.md) |
 | 04 | [One control, one clear response — Streamlit, browser events, FastAPI and a test](week04/README.md) |
 | 05 | [Images, frames and representations — 8 October 2026](week05/README.md) |
+| 06 | [Sound and speech — optional local synthesis and transcription](week06/README.md) |
 
 More lands each week.
