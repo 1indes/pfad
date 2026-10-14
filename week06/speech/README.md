@@ -1,5 +1,24 @@
 # Optional local speech examples
 
+For a presenter-controlled **browser microphone** after the console exercise,
+`speech_webrtc.py` is a separate local Streamlit/WebRTC example. From `week06/speech`:
+
+```bash
+uv venv --python 3.12 .venv-webrtc
+uv pip install --python .venv-webrtc/bin/python -r speech_webrtc_requirements.txt
+.venv-webrtc/bin/python -m streamlit run speech_webrtc.py --server.address 127.0.0.1
+```
+
+Open `http://localhost:8501`, load a cached `base.en` model, click START,
+grant permission, speak briefly, then click STOP to close the browser track.
+The app processes at most three short chunks and offers an editable transcript;
+only an explicit Ask action sends corrected text to **local** Ollama. No audio
+file is saved. Use the file-input console example below if WebRTC, permission or
+model setup fails. Real-device performance still needs a classroom rehearsal.
+
+The rest of this page uses a different optional environment for the console
+Whisper/Kokoro scripts; keep its packages separate from `.venv-webrtc`.
+
 **Kokoro: text → WAV. Whisper: WAV or microphone → text.** These are short,
 English-language CPU examples for Week 6. No API key, server or paid service is
 needed. This is inference with pretrained models; we are not training a voice.
