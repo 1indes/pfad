@@ -21,10 +21,12 @@ def capture_frames(chunks, seconds):
 def validate_wav(path):
     try:
         with wave.open(str(path), 'rb') as audio:
-            duration = audio.getnframes() / audio.getframerate()
             if (audio.getsampwidth() != 2 or audio.getnchannels() not in (1, 2)
-                    or not 8000 <= audio.getframerate() <= 192000 or not 0 < duration <= 60):
+                    or not 8000 <= audio.getframerate() <= 192000):
                 raise ValueError('Use a nonempty, 16-bit PCM WAV, mono/stereo, 8-192 kHz, at most 60 seconds long.')
+            duration = audio.getnframes() / audio.getframerate()
+            if not 0 < duration <= 60:
+                raise ValueError('Use a nonempty WAV at most 60 seconds long.')
             return duration
     except (wave.Error, EOFError) as error:
         raise ValueError('Use an uncompressed 16-bit PCM WAV file.') from error

@@ -1,9 +1,9 @@
 // Week 6 piano: p5 draws; Web Audio plays only after a key/click.
 const PIANO_W = 1200, PIANO_H = 620;
 const PIANO_KEYS = [
-  ['a', 'C4', 261.63], ['s', 'D4', 293.66], ['d', 'E4', 329.63],
-  ['f', 'F4', 349.23], ['g', 'G4', 392.00], ['h', 'A4', 440.00],
-  ['j', 'B4', 493.88], ['k', 'C5', 523.25],
+  ['1', 'C4', 261.63], ['2', 'D4', 293.66], ['3', 'E4', 329.63],
+  ['4', 'F4', 349.23], ['5', 'G4', 392.00], ['6', 'A4', 440.00],
+  ['7', 'B4', 493.88], ['8', 'C5', 523.25],
 ];
 let pianoContext = null, pianoVoices = [], pianoLast = null, pianoToken = 0;
 function pianoNoteHz(key) { return PIANO_KEYS.find(note => note[0] === String(key).toLowerCase())?.[2] || null; }
@@ -11,7 +11,7 @@ function setup() { createCanvas(PIANO_W, PIANO_H); textFont('monospace'); }
 function draw() {
   background('#f5f1e8'); noStroke(); fill('#102b30');
   textSize(35); text('A keyboard is a rule for choosing frequencies', 42, 64);
-  textSize(21); text('Click a key or press A S D F G H J K. Sound starts only when you play.', 42, 108);
+  textSize(21); text('Click a key or press 1 2 3 4 5 6 7 8. Sound starts only when you play.', 42, 108);
   for (let i = 0; i < PIANO_KEYS.length; i++) {
     const x = 42 + 138 * i, active = pianoLast && pianoLast[0] === PIANO_KEYS[i][0];
     fill(active ? '#e98040' : '#ffffff'); stroke('#17373b'); strokeWeight(3);
@@ -60,7 +60,7 @@ function mousePressed() {
 }
 function keyPressed() {
   if (keyCode === 27) { stopAudio(); return false; }
-  if (!keyIsDown || !keyIsDown(17)) pianoPlay(key);
+  if (pianoNoteHz(key) && !keyIsDown(17) && !keyIsDown(91)) { pianoPlay(key); return false; }
 }
 window.addEventListener('keydown', event => { if (event.key === 'Escape') stopAudio(); }, true);
 window.addEventListener('message', event => { if (event.source === window.parent && event.data === 'slide:stop') stopAudio(); });

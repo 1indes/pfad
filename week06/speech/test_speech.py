@@ -102,6 +102,27 @@ class BoundaryTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 transcribe.validate_wav(path)
 
+    def test_zero_rate_wav_is_rejected_before_model_or_dependencies(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'zero-rate.wav'
+            with wave.open(str(path), 'wb') as audio:
+                audio.setnchannels(1)
+                audio.setsampwidth(2)
+                audio.setframerate(16000)
+                audio.writeframes(b'\0' * 32)
+            data = bytearray(path.read_bytes())
+            data[24:28] = b'\0' * 4
+            path.write_bytes(data)
+            with self.assertRaises(ValueError):
+                transcribe.validate_wav(path)
+            errors = io.StringIO()
+            with patch.object(transcribe, 'load_model') as model, patch.object(common, 'require_dependencies') as deps, contextlib.redirect_stderr(errors):
+                self.assertEqual(transcribe.main(['--audio', str(path)]), 1)
+            model.assert_not_called()
+            deps.assert_not_called()
+            self.assertIn('Cannot transcribe:', errors.getvalue())
+            self.assertNotIn('Traceback', errors.getvalue())
+
     def test_transcription_consumes_lazy_segments_with_english_settings(self):
         model = Mock()
         consumed = []

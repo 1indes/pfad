@@ -19,3 +19,8 @@ jobs:
           python-version: "3.12"
       - name: Check speech examples without packages, models or microphone
         run: python -S week06/speech/test_speech.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check browser sketches without audio or microphone
+        run: node week06/browser/test_sketches.cjs

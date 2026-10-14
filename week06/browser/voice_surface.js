@@ -34,9 +34,12 @@ async function startMic() {
     stream.getTracks().forEach(track => track.addEventListener('ended', () => {
       if (vStream === stream) stopMic();
     }));
-    vHistory = []; vMode = 'live'; vMessage = 'Speak: frequency x time x magnitude. Click STOP when done.';
+    vHistory = []; vMode = 'live'; vMessage = 'Speak to move the landscape. Visual only: your voice is not played through speakers.';
   } catch (error) {
-    if (token === vToken) { stopMic(); vMode = 'error'; vMessage = 'No microphone available or permission denied. Try DEMO.'; }
+    if (token === vToken) { stopMic(); vMode = 'error';
+      vMessage = error.name === 'NotAllowedError'
+        ? 'Mic blocked: allow Microphone in browser site settings, reload, then click MIC. Or use DEMO.'
+        : 'Microphone unavailable. Check your input device or try DEMO.'; }
   }
 }
 function startDemo() {
@@ -81,7 +84,7 @@ function draw() {
   vHud.text('frequency →', 42, 137);
   vHud.text('time → away', 42, 167);
   vHud.text('height → energy', 42, 197);
-  vHud.text(vMessage, 42, 530);
+  vHud.text(vMessage, 42, 500, 1116, 55);
   for (const [label, x, color] of [['MIC', 42, '#246e70'], ['DEMO', 290, '#102b30'], ['STOP', 538, '#b74423']]) {
     vHud.fill(color); vHud.rect(x, 558, 215, 65, 6); vHud.fill('#fff'); vHud.textSize(24); vHud.text(label, x + 35, 601);
   }
