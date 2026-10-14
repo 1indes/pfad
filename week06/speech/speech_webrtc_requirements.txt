@@ -1,0 +1,5 @@
+# Optional local presenter app only; separate from deckgen and PFAD's Worker.
+streamlit==1.65.0
+streamlit-webrtc==0.78.1
+faster-whisper==1.2.1
+numpy>=1.26,<3

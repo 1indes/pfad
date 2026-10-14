@@ -1,0 +1,7 @@
+out/
+speech/out/
+speech/.venv-webrtc/
+# Consented local inputs stay private; do not commit recordings.
+*.wav
+*.mp3
+*.flac
