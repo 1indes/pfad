@@ -31,7 +31,8 @@ function draw() {
     endShape();
   }
   noStroke(); fill('#34545a'); textSize(18);
-  text(`Same sample clock: 22,050 samples/s. Peaks: ${b} Hz and ${b * n} Hz.`, 45, 555);
+  const clock = hContext ? `${hContext.sampleRate.toLocaleString()} samples/s` : 'set by the browser';
+  text(`Browser clock: ${clock}. Peaks: ${b} Hz and ${b * n} Hz.`, 45, 555);
   text(hMessage, 45, 595);
   const buttons = [['BASE', 45, '#246e70'], ['HARMONIC', 280, '#d75c28'], ['TOGETHER', 515, '#102b30'], ['STOP', 750, '#b74423']];
   for (const [label, x, color] of buttons) {
