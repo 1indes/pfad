@@ -1,0 +1,5 @@
+# Optional NVIDIA runtime, tested on Windows with CUDA 13 and cuDNN 9.
+# After installing conversation_requirements.txt, remove both ORT distributions:
+# uv pip uninstall --python .venv/Scripts/python.exe onnxruntime onnxruntime-gpu
+# Then install THIS file with --no-deps so CPU ORT is not installed over GPU ORT.
+onnxruntime-gpu==1.31.0

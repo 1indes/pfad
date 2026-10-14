@@ -35,8 +35,33 @@ def require_dependencies(kind, microphone=False):
     missing = [name for name, version in versions(kind, microphone).items() if version is None]
     if missing:
         raise RuntimeError('Missing packages: ' + ', '.join(missing) + '. Follow speech/README.md setup.')
-    if kind == 'kokoro' and not (shutil.which('espeak-ng') or os.environ.get('PHONEMIZER_ESPEAK_LIBRARY')):
+    if kind == 'kokoro' and not has_espeak():
         raise RuntimeError('Install espeak-ng; on Windows configure PHONEMIZER_ESPEAK_LIBRARY. See README.md.')
+
+
+def has_espeak():
+    if shutil.which('espeak-ng') or os.environ.get('PHONEMIZER_ESPEAK_LIBRARY'):
+        return True
+    try:
+        package = importlib.metadata.distribution('espeakng-loader')
+    except importlib.metadata.PackageNotFoundError:
+        return False
+    filename = ('espeak-ng.dll' if sys.platform == 'win32' else
+                'libespeak-ng.dylib' if sys.platform == 'darwin' else 'libespeak-ng.so')
+    return (Path(package.locate_file('espeakng_loader/' + filename)).is_file()
+            and Path(package.locate_file('espeakng_loader/espeak-ng-data')).is_dir())
+
+
+def whisper_model():
+    """Prefer the explicit local conversion, otherwise use the usual Hub cache."""
+    converted = OUTPUT / 'models/faster-whisper-base.en'
+    return str(converted) if (converted / 'model.bin').is_file() else 'base.en'
+
+
+def whisper_compute_type(model, device):
+    # CPU int8 caused repeated punctuation with our converted float16 checkpoint.
+    # Keep local directories in float32 on CPU; standard Hub base.en uses int8.
+    return 'float16' if device == 'cuda' else ('float32' if Path(model).is_dir() else 'int8')
 
 
 def missing_model_files(repo_id, filenames):
@@ -55,7 +80,7 @@ def missing_model_files(repo_id, filenames):
     return [name for name in filenames if not (snapshot / name).is_file()]
 
 
-def preflight(kind, microphone=False):
+def preflight(kind, microphone=False, model_path=None):
     print('Offline preflight: package metadata and cached filenames only; no model or microphone is opened.')
     for name, version in versions(kind, microphone).items():
         print(f'{name}: {version or "MISSING"}')
@@ -66,7 +91,13 @@ def preflight(kind, microphone=False):
         print(f'MISSING setup: {error}')
         ready = False
     repo, files = MODELS[kind]
-    missing = missing_model_files(repo, files)
+    selected = model_path or (whisper_model() if kind == 'whisper' else None)
+    if selected and selected != 'base.en':
+        repo = selected
+        files = ('config.json', 'model.bin', 'tokenizer.json')
+        missing = [name for name in files if not (Path(selected) / name).is_file()]
+    else:
+        missing = missing_model_files(repo, files)
     print(f'{repo}: ' + ('MISSING cache files: ' + ', '.join(missing) if missing else 'expected cache files present'))
     print('File presence does not verify model integrity, compatible libraries, audio devices or inference.')
     return ready and not missing

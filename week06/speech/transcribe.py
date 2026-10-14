@@ -32,10 +32,15 @@ def validate_wav(path):
         raise ValueError('Use an uncompressed 16-bit PCM WAV file.') from error
 
 
-def load_model(offline):
+def load_model(offline, model_name=None, device='cpu'):
     common.configure_network(offline)
     from faster_whisper import WhisperModel
-    return WhisperModel('base.en', device='cpu', compute_type='int8', local_files_only=offline)
+    if device == 'cuda':
+        from gpu_runtime import configure_cuda
+        configure_cuda()
+    selected = model_name or common.whisper_model()
+    return WhisperModel(selected, device=device,
+                        compute_type=common.whisper_compute_type(selected, device), local_files_only=offline)
 
 
 def transcribe_audio(model, audio):
@@ -104,9 +109,13 @@ def main(argv=None):
     parser.add_argument('--out', type=Path, help='New .txt path; a .json settings file is also saved')
     parser.add_argument('--check', action='store_true', help='Offline dependency/cache preflight; never opens the microphone')
     parser.add_argument('--offline', action='store_true', help='Require already cached model files')
+    parser.add_argument('--model', help='Local CTranslate2 model directory; defaults to local base.en conversion or Hub base.en')
+    parser.add_argument('--device', choices=('cpu', 'cuda'), default='cpu')
     args = parser.parse_args(argv)
     if args.check:
-        return 0 if common.preflight('whisper', args.microphone) else 1
+        ready = (common.preflight('whisper', args.microphone, model_path=args.model)
+                 if args.model else common.preflight('whisper', args.microphone))
+        return 0 if ready else 1
     if args.audio is None and not args.microphone:
         parser.error('Choose --audio FILE or explicitly opt in with --microphone.')
     try:
@@ -115,14 +124,17 @@ def main(argv=None):
         path = args.out or common.OUTPUT / ('microphone.txt' if args.microphone else 'transcript.txt')
         common.check_output(path, '.txt')
         common.require_dependencies('whisper', args.microphone)
-        print('Loading base.en on CPU (int8). First run may download weights; --offline forbids that.', flush=True)
-        model = load_model(args.offline)
+        compute_type = common.whisper_compute_type(args.model or common.whisper_model(), args.device)
+        print(f'Loading {args.model or common.whisper_model()} on {args.device} ({compute_type}). '
+              'First run may download weights; --offline forbids that.', flush=True)
+        model = (load_model(args.offline, args.model, args.device)
+                 if args.model or args.device != 'cpu' else load_model(args.offline))
         if args.microphone:
             lines = microphone_lines(model, args.chunks, args.seconds)
         else:
             lines = [transcribe_audio(model, str(args.audio)) or '[no speech detected]']
             print(lines[0])
-        settings = {'model':common.MODELS['whisper'][0], 'language':'en', 'device':'cpu', 'compute_type':'int8',
+        settings = {'model':args.model or common.whisper_model(), 'language':'en', 'device':args.device, 'compute_type':compute_type,
                     'source':'microphone' if args.microphone else str(args.audio), 'duration_seconds':duration,
                     'chunks':args.chunks if args.microphone else None, 'capture_rate_hz':RATE if args.microphone else None,
                     'versions':common.versions('whisper', args.microphone)}

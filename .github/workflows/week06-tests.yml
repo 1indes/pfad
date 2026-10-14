@@ -19,6 +19,8 @@ jobs:
           python-version: "3.12"
       - name: Check speech examples without packages, models or microphone
         run: python -S week06/speech/test_speech.py
+      - name: Check local chat client without a server or model
+        run: python -S week06/speech/test_local_reply.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

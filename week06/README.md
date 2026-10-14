@@ -21,7 +21,7 @@ separate credentials and can use paid credits.
 
 The slides embed the same [p5.js sketches](browser/) stored here:
 
-- [Keyboard piano](browser/piano.html) (`piano.js`): click a key or press A–K.
+- [Keyboard piano](browser/piano.html) (`piano.js`): click a key or press 1-8.
 - [Harmonics](browser/harmonics.html) (`harmonics.js`): adjust the base and
   multiplier; compare the two tones with their sum.
 - [Voice surface](browser/voice_surface.html) (`voice_surface.js`): click DEMO
@@ -56,6 +56,9 @@ representations:
 2. **Sound → text:** faster-whisper transcribes that WAV locally.
 3. **Microphone → near-live text:** explicitly opt in to a finite recording,
    processed in chunks. A file-based alternative works without a microphone.
+4. **Local browser voice bot:** [faster-whisper + LM Studio + Kokoro ONNX](speech/CONVERSATION.md),
+   with Start/Stop capture, an editable transcript and spoken replies. CPU is
+   the portable default; NVIDIA CUDA and TensorRT experiments are optional.
 
 Start with the first two. Change one speech-speed value and listen to the result
 before trying the microphone. These are lesson examples and optional practice,
@@ -68,3 +71,6 @@ use download substantial libraries and model files, so prepare before class.
 Only use your own or consented recordings. Transcriptions can be wrong, and
 synthetic speech should be labelled when shared. See the [setup, limitations,
 privacy notes and verification status](speech/README.md).
+
+See the [14 October environment check](ENVIRONMENT.md) for verified examples,
+models reused on disk, missing optional resources and this laptop's GPU limits.

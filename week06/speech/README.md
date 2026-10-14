@@ -1,23 +1,20 @@
 # Optional local speech examples
 
-For a presenter-controlled **browser microphone** after the console exercise,
-`speech_webrtc.py` is a separate local Streamlit/WebRTC example. From `week06/speech`:
+For the **browser voice bot**, follow [CONVERSATION.md](CONVERSATION.md):
+faster-whisper `base.en`, LM Studio (MiniCPM5 on the prepared laptop), and Kokoro
+ONNX. The Start/Stop mic control stays beside the chat input. Recognition fills
+that box while you speak; Enter sends the edited message and stops the mic before
+the reply. Logs are in a collapsible sidebar panel. CPU is the portable default
+for Windows, Macs and AMD laptops; NVIDIA CUDA is optional. TensorRT stays an
+optional experiment. The older Ollama
+reply option is retained but needs its own running server and `qwen3:4b` model.
 
-```bash
-uv venv --python 3.12 .venv-webrtc
-uv pip install --python .venv-webrtc/bin/python -r speech_webrtc_requirements.txt
-.venv-webrtc/bin/python -m streamlit run speech_webrtc.py --server.address 127.0.0.1
-```
-
-Open `http://localhost:8501`, load a cached `base.en` model, click START,
-grant permission, speak briefly, then click STOP to close the browser track.
-The app processes at most three short chunks and offers an editable transcript;
-only an explicit Ask action sends corrected text to **local** Ollama. No audio
-file is saved. Use the file-input console example below if WebRTC, permission or
-model setup fails. Real-device performance still needs a classroom rehearsal.
-
-The rest of this page uses a different optional environment for the console
-Whisper/Kokoro scripts; keep its packages separate from `.venv-webrtc`.
+The rest of this page describes the original **console exercises**, including
+PyTorch Kokoro. Their `requirements.txt` is heavier than the browser bot's
+`conversation_requirements.txt`. They can share this separate Python 3.12
+environment if both requirement sets are installed; neither belongs in the root
+Week 4 environment. Actual verification and remaining resources are listed in
+the [environment report](../ENVIRONMENT.md).
 
 **Kokoro: text → WAV. Whisper: WAV or microphone → text.** These are short,
 English-language CPU examples for Week 6. No API key, server or paid service is
@@ -30,8 +27,13 @@ From the `pfad` repository root, with a recent `uv`:
 ```bash
 cd week06/speech
 uv venv --no-project --python 3.12
-uv pip install --torch-backend cpu -r requirements.txt
+uv pip install --python .venv/bin/python --torch-backend cpu -r requirements.txt
 ```
+
+On Windows PowerShell, use `.venv/Scripts/python.exe` instead of `.venv/bin/python`
+in the install command. For the commands below, replace `uv run --no-project`
+with `.venv/Scripts/python.exe` on Windows or `.venv/bin/python` on macOS/Linux
+to use this exact environment without consulting the root project.
 
 Run all remaining commands from `week06/speech`. Use `--no-project` every time:
 the root `pyproject.toml` belongs to the Week 4 Python 3.13 Worker. Kokoro 0.9.4
@@ -45,7 +47,9 @@ The scripts check for that resource before creating Kokoro's pipeline, preventin
 an unexpected language-package installation during synthesis. Top-level speech
 packages are pinned; this is **not a fully resolved, inference-tested lockfile**.
 
-Install **eSpeak NG** for Kokoro's pronunciation fallback:
+Kokoro's pronunciation fallback needs **eSpeak NG**. An installed
+`espeakng-loader` bundle supplies the library/data on supported platforms, and
+the preflight recognizes it. If that bundle is unavailable, install eSpeak NG:
 
 - Ubuntu/Debian: `sudo apt-get install espeak-ng`
 - macOS with Homebrew: `brew install espeak-ng`
@@ -133,10 +137,17 @@ downmixed and resampled by faster-whisper. This deliberately narrow file exercis
 avoids format confusion; the underlying library supports more formats. Choose a
 new `--out ../out/another-transcript.txt` to preserve the first result.
 
-The demo uses `base.en`, CPU `int8`, English, a one-beam decode and voice activity
+The demo uses `base.en`, CPU, English, a one-beam decode and voice activity
 detection. Silence may yield no text, but the detector is not a guarantee against
 hallucinated words. We consume the segment generator: simply calling
 `model.transcribe(...)` does not finish transcription.
+
+If `../out/models/faster-whisper-base.en` is prepared, the scripts reuse it instead
+of downloading another model. CPU uses float32 for local model directories
+because int8 on the converted float16 checkpoint repeated punctuation in this
+environment; the standard Hub `base.en` identifier uses int8. `--model DIRECTORY`
+selects another local CTranslate2 model. `--device cuda` opts into NVIDIA float16
+inference; see the optional runtime setup in [CONVERSATION.md](CONVERSATION.md).
 
 ## 5. Opt in to a finite near-live transcript
 
@@ -238,11 +249,15 @@ all synthesis chunks, output safety, cache inspection, and import/help/preflight
 without site packages. Model/device boundaries use small fakes, not real weights
 or a microphone. CI runs these offline checks only.
 
-**Status:** API/source reviewed and offline behavior tested. No model weights,
-real synthesis, recognition accuracy, microphone hardware, cross-platform
-installation or latency benchmark has been verified for this change. An
-instructor should complete the warm-up and short listening/recording rehearsal
-on the classroom computer before relying on the live demonstration.
+**Status, 14 October 2026:** Offline tests pass. Actual Kokoro **ONNX** synthesis
+and faster-whisper file recognition work on CPU and CUDA using prepared local
+weights. Chromium checks exercise synthetic microphone input, capture beyond
+12 seconds, STOP, editable text, actual LM Studio/MiniCPM replies and generated
+audio. Original **PyTorch** Kokoro weights are still missing here, so that
+original synthesis path was not exercised with real weights. Physical mic and
+speaker performance, cross-platform installation and long-session stability
+still need rehearsal. See [ENVIRONMENT.md](../ENVIRONMENT.md) for details and
+short-test timings; these do not establish classroom accuracy or latency.
 
 Sources checked 13 October 2026:
 [faster-whisper 1.2.1](https://github.com/SYSTRAN/faster-whisper/tree/v1.2.1),

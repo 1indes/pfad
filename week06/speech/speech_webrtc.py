@@ -1,17 +1,18 @@
 """Local teacher demo: browser WebRTC audio -> checked transcript -> optional local reply.
 
 Run with Streamlit on localhost after warming the faster-whisper base.en cache.
-No mic opens, network model download happens, or Ollama receives text on page load.
+No mic opens, model downloads happen, or a chat server receives text on page load.
 """
 from array import array
 from queue import Empty
 import json
-import time
 from urllib import request
 
+import local_reply
+
 RATE = 16000
-MAX_CHUNKS = 3
 CHUNK_SECONDS = 3
+MAX_TRANSCRIPT_LINES = 20
 OLLAMA_URL = 'http://127.0.0.1:11434/api/chat'
 
 
@@ -82,88 +83,294 @@ def main():
     import streamlit as st
     from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
-    st.set_page_config(page_title='SD5913 | Speech as interaction')
-    st.title('Speech as an interaction')
-    st.write('Console microphone -> browser WebRTC -> check transcript -> optional local text reply.')
-    st.info('Local instructor demo only. Start with your own voice at localhost; click STOP '
-            'to release the browser microphone. No audio file is saved.')
-    st.session_state.setdefault('lines', [])
-    st.session_state.setdefault('captured_chunks', 0)
+    st.set_page_config(page_title='Pip | Local voice chat')
+    st.title('Pip, your studio sidekick')
+    st.caption('A little curiosity, a little mischief. All on your laptop.')
+    st.html('''<script>
+      if (!window.pipAudioController) {
+        window.pipAudioController = true;
+        const players = () => document.querySelectorAll('audio[data-testid="stAudio"]');
+        const pause = () => players().forEach(audio => audio.pause());
+        const tracks = new Set();
+        let microphoneActive = false;
+        const stopMic = () => {
+          microphoneActive = false;
+          tracks.forEach(track => track.stop());
+          tracks.clear();
+        };
+        const watchMic = () => document.querySelectorAll('iframe').forEach(frame => {
+          if (!frame.src.includes('streamlit_webrtc')) return;
+          const media = frame.contentWindow?.navigator.mediaDevices;
+          if (!media || media.pipTracked) return;
+          const original = media.getUserMedia.bind(media);
+          media.getUserMedia = async (...args) => {
+            const stream = await original(...args);
+            stream.getTracks().forEach(track => {
+              tracks.add(track);
+              if (!microphoneActive) track.stop();
+            });
+            return stream;
+          };
+          media.pipTracked = true;
+        });
+        document.addEventListener('load', watchMic, true);
+        watchMic();
+        document.addEventListener('play', event => {
+          if (event.target.matches('audio[data-testid="stAudio"]'))
+            players().forEach(audio => { if (audio !== event.target) audio.pause(); });
+        }, true);
+        document.addEventListener('click', event => {
+          const mic = event.target.closest('.st-key-mic_button button');
+          if (mic && mic.textContent.includes('Start mic')) {
+            watchMic();
+            microphoneActive = true;
+            pause();
+          } else if (mic || event.target.closest('[data-testid="stChatInput"] button')) {
+            pause();
+            stopMic();
+          }
+        }, true);
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Enter' && !event.shiftKey &&
+              event.target.closest('[data-testid="stChatInput"]')) {
+            pause();
+            stopMic();
+          }
+        }, true);
+      }
+    </script>''', unsafe_allow_javascript=True)
+    for key, value in {'lines': [], 'captured_chunks': 0, 'conversation': [], 'speech_draft': ''}.items():
+        st.session_state.setdefault(key, value)
 
-    if st.button('Load cached local speech model'):
+    @st.cache_resource
+    def voice_pipeline(selected_device):
+        from synthesise_onnx import load_voice
+        from threading import Lock
+        return load_voice(selected_device), Lock()
+
+    @st.cache_resource
+    def speech_model(selected_device):
+        import common
+        from gpu_runtime import configure_cuda
+        from faster_whisper import WhisperModel
+        common.configure_network(True)
+        if selected_device == 'cuda':
+            configure_cuda()
+        selected = common.whisper_model()
+        return WhisperModel(selected, device=selected_device,
+                            compute_type=common.whisper_compute_type(selected, selected_device),
+                            local_files_only=True)
+
+    def send_message():
+        text = st.session_state['draft'].strip()
+        if text:
+            st.session_state['pending_message'] = text
+            st.session_state['speech_draft'] = ''
+            st.session_state['draft_update'] = False
+            st.session_state['stop_requested'] = True
+            st.session_state['discard_capture'] = True
+
+    def toggle_microphone():
+        if st.session_state.get('capture_active'):
+            st.session_state['mic_requested'] = False
+            st.session_state['stop_requested'] = True
+            return
         try:
-            from faster_whisper import WhisperModel
-            st.session_state['model'] = WhisperModel('base.en', device='cpu',
-                                                     compute_type='int8', local_files_only=True)
+            st.session_state['model'] = speech_model(device)
+            st.session_state['model_device'] = device
+            st.session_state['mic_requested'] = True
+            st.session_state['stop_requested'] = False
         except (ImportError, OSError, RuntimeError, ValueError) as error:
-            st.error(f'Model not ready: {error}. Pre-download base.en before class, or use a consented WAV.')
-    model = st.session_state.get('model')
-    if model is None:
-        st.write('Prepare the PFAD speech model cache first; no microphone starts on this page.')
-        return
+            st.session_state['mic_error'] = f'{error}. Prepare base.en first, or type a message.'
 
-    ctx = webrtc_streamer(key='sd5913-speech', mode=WebRtcMode.SENDONLY,
-                          media_stream_constraints={'video': False, 'audio': True},
-                          rtc_configuration={'iceServers': []}, audio_receiver_size=256)
-    status = st.empty()
-    transcript = st.empty()
-    if ctx.state.playing and st.session_state.get('capture_done'):
-        status.warning('Processing ended. Click STOP to release the browser microphone.')
-        return
-    if ctx.state.playing:
-        st.session_state['capture_active'] = True
-        chunker = AudioChunker(av.AudioResampler(format='s16', layout='mono', rate=RATE))
-        began = time.monotonic()
-        status.info('Browser microphone active. Speak briefly; click STOP after the demo.')
-        while ctx.state.playing and st.session_state['captured_chunks'] < MAX_CHUNKS and time.monotonic() - began < 25:
-            if ctx.audio_receiver is None:
-                time.sleep(0.1)
-                continue
-            try:
-                frames = ctx.audio_receiver.get_frames(timeout=1)
-            except Empty:
-                continue
-            try:
-                for frame in frames:
-                    for chunk in chunker.push(frame):
-                        if st.session_state['captured_chunks'] >= MAX_CHUNKS:
-                            break
-                        st.session_state['captured_chunks'] += 1
-                        count = st.session_state['captured_chunks']
-                        line = transcribe_chunk(model, chunk) or '[no speech detected]'
-                        st.session_state['lines'].append(f'[{count * CHUNK_SECONDS - CHUNK_SECONDS}-{count * CHUNK_SECONDS}s] {line}')
-                        transcript.text('\n'.join(st.session_state['lines']))
-            except (OSError, RuntimeError, ValueError) as error:
-                status.error(f'Audio processing stopped: {error}. Click STOP; use the file fallback.')
-                st.session_state['capture_done'] = True
-                return
-        st.session_state['capture_done'] = True
-        status.warning('Processing ended. Click STOP to release the microphone track; '
-                       'the browser may still be capturing until you do.')
-        return
-
-    st.session_state['capture_active'] = False
-    st.session_state['capture_done'] = False
-    st.session_state['captured_chunks'] = 0
-    if st.session_state.get('corrected_at_count') != len(st.session_state['lines']):
-        st.session_state['corrected'] = '\n'.join(line.split('] ', 1)[-1]
-                                                   for line in st.session_state['lines']
-                                                   if not line.endswith('[no speech detected]'))
-        st.session_state['corrected_at_count'] = len(st.session_state['lines'])
-    transcript.text('\n'.join(st.session_state['lines']) or 'No transcript yet.')
-    st.text_area('Correct the transcript before any response', key='corrected', height=110)
-    st.caption('Only the button below contacts local Ollama at 127.0.0.1. '
-               'No automatic upload or voice reply is configured.')
-    if st.button('Ask local model using corrected text', disabled=not st.session_state['corrected'].strip()):
-        try:
-            st.write(ask_local_model(st.session_state['corrected']))
-        except (OSError, TimeoutError, ValueError, KeyError, json.JSONDecodeError) as error:
-            st.error(f'Local reply unavailable: {error}. Leave the transcript for manual review.')
-    if st.button('Clear local transcript'):
+    def clear_chat():
+        st.session_state['conversation'] = []
         st.session_state['lines'] = []
-        st.session_state['corrected'] = ''
-        st.session_state['corrected_at_count'] = 0
+        st.session_state['speech_draft'] = ''
+        st.session_state['draft_update'] = True
+        st.session_state['reply_error'] = None
+        st.session_state['stop_requested'] = True
+        st.session_state['discard_capture'] = True
+
+    with st.sidebar:
+        st.header('Chat settings')
+        with st.expander('Advanced settings'):
+            backend = st.selectbox('Reply server', ['LM Studio', 'Ollama'])
+            base_url = st.text_input('Server URL', value=local_reply.DEFAULT_URL)
+            device = 'cuda' if st.radio('Speech processing', ['CPU', 'NVIDIA CUDA']) == 'NVIDIA CUDA' else 'cpu'
+            speed = st.slider('Voice speed', min_value=0.5, max_value=2.0, value=1.0, step=0.05)
+            show_devices = st.checkbox('Show microphone device picker')
+            st.caption('CPU works on Macs and AMD laptops too. LM Studio controls its own acceleration.')
+        model_id = ''
+        if backend == 'LM Studio':
+            if st.button('Find loaded models'):
+                try:
+                    models = local_reply.list_models(base_url)
+                    st.session_state['local_models'] = models
+                    if models:
+                        st.session_state['reply_model'] = next(
+                            (name for name in models if 'minicpm' in name.lower()), models[0])
+                        st.success('Local server connected.')
+                    else:
+                        st.warning('Load a chat model in LM Studio, then find models again.')
+                except (OSError, ValueError, KeyError, TypeError) as error:
+                    st.error(f'Cannot reach LM Studio: {error}. Start its local server first.')
+            models = st.session_state.get('local_models', [])
+            if models:
+                model_id = st.selectbox('Model', models, key='reply_model')
+            else:
+                model_id = st.text_input('Model identifier', key='reply_model',
+                                         placeholder='Find loaded models above')
+        with st.expander('Assistant personality'):
+            system_prompt = st.text_area('System prompt', value=local_reply.SYSTEM,
+                                         height=220, max_chars=2000)
+        spoken = st.checkbox('Speak replies', value=True)
+        st.button('Clear chat', on_click=clear_chat)
+        st.caption('Your words go only to the local server when you send. No microphone recording is saved.')
+
+    model = st.session_state.get('model')
+    if st.session_state.get('model_device') != device:
+        model = None
+    # Mount the transport before the first Start so it sees a False -> True change.
+    with st.sidebar, st.container(key='webrtc_transport'):
+        ctx = webrtc_streamer(
+            key='sd5913-speech', mode=WebRtcMode.SENDONLY,
+            desired_playing_state=(False if st.session_state.get('stop_requested') or model is None
+                                   else bool(st.session_state.get('mic_requested'))),
+            media_stream_constraints={'video': False, 'audio': True},
+            rtc_configuration={'iceServers': []}, audio_receiver_size=256)
+    if not show_devices:
+        st.html('<style>.st-key-webrtc_transport { display: none; }</style>')
+
+    if (ctx and ctx.state.playing and not st.session_state.get('capture_active')
+            and not st.session_state.get('stop_requested')):
+        st.session_state['audio_chunker'] = AudioChunker(
+            av.AudioResampler(format='s16', layout='mono', rate=RATE))
+        st.session_state['captured_chunks'] = 0
+        st.session_state['capture_active'] = True
+        st.session_state['discard_capture'] = False
+        st.session_state['mic_error'] = None
+
+    def add_words(line, label):
+        st.session_state['lines'].append(f'[{label}] {line or "no speech detected"}')
+        st.session_state['lines'] = st.session_state['lines'][-MAX_TRANSCRIPT_LINES:]
+        if line and not st.session_state.get('discard_capture'):
+            st.session_state['speech_draft'] = (st.session_state['speech_draft'].rstrip() + ' ' + line).strip()[-500:]
+            st.session_state['draft_update'] = True
+
+    @st.fragment(run_every=0.5 if ctx and ctx.state.playing else None)
+    def listen():
+        if not ctx or not model:
+            return
+        if not ctx.state.playing:
+            if st.session_state.get('capture_active'):
+                chunker = st.session_state.pop('audio_chunker', None)
+                if (chunker and chunker.pending_samples >= int(RATE * 0.3)
+                        and not st.session_state.get('discard_capture')):
+                    try:
+                        add_words(transcribe_chunk(model, chunker.pending), 'last partial chunk')
+                    except (OSError, RuntimeError, ValueError) as error:
+                        st.session_state['mic_error'] = str(error)
+                st.session_state['capture_active'] = False
+                st.session_state['discard_capture'] = False
+                st.session_state['stop_requested'] = False
+                st.session_state['mic_requested'] = None
+                st.rerun()
+            st.session_state['stop_requested'] = False
+            return
+        if st.session_state.get('stop_requested') or st.session_state.get('mic_error'):
+            return
+        if ctx.audio_receiver is None:
+            return
+        try:
+            frames = ctx.audio_receiver.get_frames(timeout=0.01)
+        except Empty:
+            return
+        changed = False
+        try:
+            for frame in frames:
+                for chunk in st.session_state['audio_chunker'].push(frame):
+                    st.session_state['captured_chunks'] += 1
+                    count = st.session_state['captured_chunks']
+                    add_words(transcribe_chunk(model, chunk), f'{(count - 1) * CHUNK_SECONDS}-{count * CHUNK_SECONDS}s')
+                    changed = True
+        except (OSError, RuntimeError, ValueError) as error:
+            st.session_state['mic_error'] = str(error)
+            changed = True
+        if changed:
+            st.rerun()
+
+    pending = (st.session_state.get('pending_message')
+               if not ctx or not ctx.state.playing else None)
+    with st.sidebar.expander('Transcription log', expanded=False):
+        st.caption('Latest 20 chunks. Recognition is a guess; check the message before sending.')
+        st.text('\n'.join(st.session_state['lines']) or 'No speech captured yet.')
+    if st.session_state.get('mic_error'):
+        st.warning(f'Microphone processing stopped: {st.session_state["mic_error"]}. Click STOP, then type or try again.')
+    if st.session_state.get('reply_error'):
+        st.error(st.session_state['reply_error'])
+
+    if not st.session_state['conversation']:
+        with st.chat_message('assistant'):
+            st.write("Hi, I'm Pip. Got a half-baked idea, a design puzzle, or just a hello? Let's play with it.")
+    for message in st.session_state['conversation']:
+        with st.chat_message(message['role']):
+            st.write(message['content'])
+            if message.get('audio'):
+                with st.container(key=f"reply_audio_{message['turn_id']}"):
+                    st.audio(message['audio'], format='audio/wav',
+                             autoplay=message['turn_id'] == st.session_state.get('autoplay_turn'))
+
+    if pending:
+        st.session_state['reply_error'] = None
+        with st.chat_message('user'):
+            st.write(pending)
+        try:
+            with st.chat_message('assistant'), st.spinner('Pip is thinking...'):
+                answer = (local_reply.ask(pending, model_id, st.session_state['conversation'], base_url, system_prompt)
+                          if backend == 'LM Studio' else ask_local_model(pending))
+                st.write(answer)
+            turn_id = st.session_state.get('turn_id', 0) + 1
+            st.session_state['turn_id'] = turn_id
+            st.session_state['conversation'].extend([
+                {'role': 'user', 'content': pending},
+                {'role': 'assistant', 'content': answer, 'turn_id': turn_id}])
+            st.session_state['conversation'] = st.session_state['conversation'][-8:]
+            st.session_state.pop('pending_message', None)
+            if spoken:
+                try:
+                    import synthesise_onnx
+                    with st.spinner('Pip is finding a voice...'):
+                        pipeline, lock = voice_pipeline(device)
+                        with lock:
+                            data, _ = synthesise_onnx.synthesise_reply(answer, speed, device, voice=pipeline)
+                        st.session_state['conversation'][-1]['audio'] = data
+                        st.session_state['autoplay_turn'] = turn_id
+                except (ImportError, OSError, RuntimeError, ValueError) as error:
+                    st.session_state['reply_error'] = f'Text reply is ready, but speech is unavailable: {error}. Turn off spoken replies or prepare Kokoro.'
+        except (OSError, TimeoutError, ValueError, KeyError, IndexError, TypeError, json.JSONDecodeError) as error:
+            st.session_state.pop('pending_message', None)
+            st.session_state['draft'] = pending
+            st.session_state['reply_error'] = f'Local reply unavailable: {error}. Check Chat settings and press Enter to retry.'
         st.rerun()
+
+    if st.session_state.pop('draft_update', False):
+        st.session_state['draft'] = st.session_state['speech_draft']
+    # Streamlit 1.65's native bottom region keeps the input and mic together.
+    from streamlit.delta_generator_singletons import get_dg_singleton_instance
+    with get_dg_singleton_instance().bottom_dg:
+        with st.container(horizontal=True, vertical_alignment='bottom', gap='small'):
+            st.chat_input('Type or speak a message... Enter to send', key='draft',
+                          max_chars=500, on_submit=send_message)
+            listening = bool(ctx and ctx.state.playing)
+            with st.container(key='mic_button', width='content'):
+                st.button('Stop mic' if listening else 'Start mic',
+                          icon=':material/stop:' if listening else ':material/mic:',
+                          type='primary' if listening else 'secondary', on_click=toggle_microphone)
+        st.caption('Listening - Enter sends and stops the mic.' if listening
+                   else 'Start mic to speak. Edit your words, then press Enter.')
+    # Render the composer before polling: an ASR rerun must not starve draft updates.
+    listen()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,6 @@
+# Portable browser voice bot: CPU speech on Windows, macOS and Linux.
+# LM Studio runs separately; no PyTorch or TensorRT required here.
+-r speech_webrtc_requirements.txt
+kokoro-onnx==0.6.1
+onnxruntime>=1.20.1,<2
+soundfile>=0.13,<0.14

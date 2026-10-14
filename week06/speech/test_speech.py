@@ -147,6 +147,12 @@ class BoundaryTests(unittest.TestCase):
 
 
 class CacheTests(unittest.TestCase):
+    def test_cpu_compute_type_preserves_local_checkpoint_accuracy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(common.whisper_compute_type(tmp, 'cpu'), 'float32')
+            self.assertEqual(common.whisper_compute_type(tmp, 'cuda'), 'float16')
+        self.assertEqual(common.whisper_compute_type('base.en', 'cpu'), 'int8')
+
     def test_preflight_checks_cached_files_without_loading_model(self):
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'HF_HUB_CACHE':tmp}):
             repo = Path(tmp) / 'models--example--model'
@@ -268,7 +274,7 @@ class MicrophoneTests(unittest.TestCase):
 class WiringTests(unittest.TestCase):
     def test_whisper_uses_cpu_int8_and_respects_offline(self):
         factory = Mock()
-        with patch.dict(sys.modules, {'faster_whisper':types.SimpleNamespace(WhisperModel=factory)}), patch.dict(os.environ, {}, clear=True):
+        with patch.dict(sys.modules, {'faster_whisper':types.SimpleNamespace(WhisperModel=factory)}), patch.dict(os.environ, {}, clear=True), patch.object(common, 'whisper_model', return_value='base.en'):
             transcribe.load_model(True)
             self.assertEqual(os.environ['HF_HUB_OFFLINE'], '1')
         factory.assert_called_once_with('base.en', device='cpu', compute_type='int8', local_files_only=True)
