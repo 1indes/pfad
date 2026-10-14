@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+# /// script
+# dependencies = ["python-dotenv>=1,<2"]
+# ///
 """Easel song API lesson: OFFLINE preview unless --send is explicitly supplied.
 
 Instructor-only, serialized demonstration: Suno's latest-attempt status is SHARED.
 --send can spend credits. Never rerun it to recover a timeout or CAPTCHA.
 Contract verified in Easel commit 7c2a419e1eb2143a071d31ae45f2f105fcbf6b81.
-See TEACHER_NOTES.md for source links, model limits and recovery guidance.
+See ../README.md for defaults, setup and recovery guidance.
 """
 import argparse
 import http.client
@@ -20,6 +23,10 @@ from uuid import UUID
 
 GENERATIONS = "/v1/audio/generations"
 STATUS = GENERATIONS + "/status"
+DEFAULT_BASE_URL = "https://easel.ait4x.org"
+DEFAULT_PROMPT = "Gentle ambient piano with warm strings, a relaxed mood and a simple melody"
+DEFAULT_TITLE = "Studio Break"
+DEFAULT_DURATION_SECONDS = 30
 
 
 class SongError(Exception):
@@ -65,7 +72,7 @@ class Client:
                 or parsed.path not in ("", "/")):
             raise SongError("EASEL_BASE_URL must be an HTTPS server root, without credentials.")
         if not key.strip() or any(character in key for character in "\r\n"):
-            raise SongError("Set a valid EASEL_API_KEY in the environment.")
+            raise SongError("Set a valid EASEL_KEY (or EASEL_API_KEY) in .env or the environment.")
         self.base = base_url.rstrip("/")
         self.key = key
         self.timeout = timeout
@@ -207,15 +214,18 @@ def generate_and_save(client, payload, output, *, wait_seconds=300,
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prompt", default="Gentle ambient piano with warm strings")
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--prompt", default=DEFAULT_PROMPT, help="describe the music")
     parser.add_argument("--lyrics", default="")
-    parser.add_argument("--title", default="")
+    parser.add_argument("--title", default=DEFAULT_TITLE, help="song title")
     parser.add_argument("--instrumental", action="store_true")
     parser.add_argument("--weirdness", type=int)
     parser.add_argument("--style-influence", type=int)
-    parser.add_argument("--duration-seconds", type=int)
-    parser.add_argument("--output-dir", type=Path, default=Path("out/songs"))
+    parser.add_argument("--duration-seconds", type=int, default=DEFAULT_DURATION_SECONDS,
+                        help="requested length, from 10 to 360 seconds")
+    parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parent / "out/songs",
+                        help="save all returned tracks here")
     parser.add_argument("--wait-seconds", type=int, default=300,
                         help="polling budget; individual HTTP requests time out after 180 seconds")
     parser.add_argument("--send", action="store_true", help="REAL generation: may spend credits")
@@ -230,10 +240,13 @@ def main(argv=None):
             print("POST", GENERATIONS)
             print(json.dumps(payload, indent=2))
             return 0
-        base = os.environ.get("EASEL_BASE_URL", "")
-        key = os.environ.get("EASEL_API_KEY", "")
-        if not base or not key:
-            raise SongError("Set EASEL_BASE_URL and EASEL_API_KEY before using --send.")
+        from dotenv import load_dotenv
+
+        load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
+        base = os.environ.get("EASEL_BASE_URL", DEFAULT_BASE_URL)
+        key = os.environ.get("EASEL_API_KEY") or os.environ.get("EASEL_KEY", "")
+        if not key:
+            raise SongError("Set EASEL_KEY (or EASEL_API_KEY) in the root .env or environment before --send.")
         client = Client(base, key)
         for path in generate_and_save(client, payload, args.output_dir, wait_seconds=args.wait_seconds):
             print("Saved", path)

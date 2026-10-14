@@ -1,5 +1,5 @@
 # /// script
-# dependencies = []
+# dependencies = ["python-dotenv>=1,<2"]
 # ///
 """Preview an image request; use --send with an enabled classroom API account."""
 
@@ -27,9 +27,12 @@ def main():
         print(json.dumps(payload, indent=2))
         return
 
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
     key = os.environ.get("EASEL_KEY")
     if not key:
-        parser.error("--send requires EASEL_KEY from the enabled classroom account")
+        parser.error("--send requires EASEL_KEY in the root .env or environment; see .env.example")
     headers = {
         "Authorization": "Bearer " + key,
         "Content-Type": "application/json",

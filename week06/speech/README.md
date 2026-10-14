@@ -22,24 +22,40 @@ needed. This is inference with pretrained models; we are not training a voice.
 
 ## 1. Prepare a separate environment
 
-From the `pfad` repository root, with a recent `uv`:
+From the `pfad` repository root, with a recent `uv`, enter `week06/speech`.
+Create `.venv` once; skip `uv venv` if it is already prepared.
+Windows PowerShell:
+
+```powershell
+cd week06/speech
+uv venv --no-project --python 3.12 .venv
+uv pip install --python .venv/Scripts/python.exe --torch-backend cpu -r requirements.txt
+```
+
+macOS/Linux:
 
 ```bash
 cd week06/speech
-uv venv --no-project --python 3.12
+uv venv --no-project --python 3.12 .venv
 uv pip install --python .venv/bin/python --torch-backend cpu -r requirements.txt
 ```
 
-On Windows PowerShell, use `.venv/Scripts/python.exe` instead of `.venv/bin/python`
-in the install command. For the commands below, replace `uv run --no-project`
-with `.venv/Scripts/python.exe` on Windows or `.venv/bin/python` on macOS/Linux
-to use this exact environment without consulting the root project.
+The commands below use `uv run --no-project --python .venv/bin/python` for
+macOS/Linux. On Windows, replace `.venv/bin/python` with
+`.venv/Scripts/python.exe`. No environment activation is required. For example:
+
+```powershell
+uv run --no-project --python .venv/Scripts/python.exe synthesise.py --check
+```
 
 Run all remaining commands from `week06/speech`. Use `--no-project` every time:
 the root `pyproject.toml` belongs to the Week 4 Python 3.13 Worker. Kokoro 0.9.4
 requires Python below 3.13. The separate `.venv` keeps speech dependencies out
 of that project and the rest of the course. `--torch-backend` is an install
 option, not a `uv run` option.
+CPU works on Windows and macOS. Optional NVIDIA speech acceleration is covered
+in [the ONNX guide](CONVERSATION.md#optional-nvidia-acceleration); macOS speech
+remains CPU while LM Studio can use Metal independently.
 
 The installation includes PyTorch, Misaki and spaCy's English language resource
 from its [official release](https://github.com/explosion/spacy-models/releases/tag/en_core_web_sm-3.8.0).
@@ -65,11 +81,11 @@ Use a local terminal: a remote server's microphone is not your browser's microph
 ## 2. Check before class
 
 ```bash
-uv run --no-project synthesise.py --help
-uv run --no-project transcribe.py --help
-uv run --no-project synthesise.py --check
-uv run --no-project transcribe.py --check
-uv run --no-project transcribe.py --check --microphone
+uv run --no-project --python .venv/bin/python synthesise.py --help
+uv run --no-project --python .venv/bin/python transcribe.py --help
+uv run --no-project --python .venv/bin/python synthesise.py --check
+uv run --no-project --python .venv/bin/python transcribe.py --check
+uv run --no-project --python .venv/bin/python transcribe.py --check --microphone
 ```
 
 Help, imports and `--check` never load a model, download files, infer speech or
@@ -89,7 +105,7 @@ JSON when comparing results, and retain the prepared environment for class.
 ## 3. Text → sound with Kokoro
 
 ```bash
-uv run --no-project synthesise.py
+uv run --no-project --python .venv/bin/python synthesise.py
 ```
 
 This saves `week06/out/kokoro.wav` and `week06/out/kokoro.json`. Open the WAV in an
@@ -101,7 +117,7 @@ The JSON records the text, voice, speed, sample rate, duration and package versi
 Predict what will change when you alter only the speed, then try:
 
 ```bash
-uv run --no-project synthesise.py --speed 0.85 --out ../out/kokoro-slow.wav
+uv run --no-project --python .venv/bin/python synthesise.py --speed 0.85 --out ../out/kokoro-slow.wav
 ```
 
 Listen to both files. Is the slower version easier to follow? Does its delivery
@@ -109,7 +125,7 @@ still fit a short interface cue? Keep the sentence and voice fixed so the change
 is meaningful. Next, try a short sentence of your own with a new output name:
 
 ```bash
-uv run --no-project synthesise.py --text "Your drawing has been saved." --out ../out/drawing-saved.wav
+uv run --no-project --python .venv/bin/python synthesise.py --text "Your drawing has been saved." --out ../out/drawing-saved.wav
 ```
 
 Text is limited to 500 characters, speed to 0.5–2.0, and saved audio to 60 seconds.
@@ -122,7 +138,7 @@ overwritten; choose another `--out` filename for each experiment.
 Feed the synthetic result back into a recognition model:
 
 ```bash
-uv run --no-project transcribe.py --audio ../out/kokoro.wav
+uv run --no-project --python .venv/bin/python transcribe.py --audio ../out/kokoro.wav
 ```
 
 The text appears in the terminal and is saved in `week06/out/transcript.txt`,
@@ -155,7 +171,7 @@ Only record yourself or people who have agreed to this recording and its use.
 Check your OS microphone permission, then deliberately opt in:
 
 ```bash
-uv run --no-project transcribe.py --microphone --chunks 3 --seconds 5
+uv run --no-project --python .venv/bin/python transcribe.py --microphone --chunks 3 --seconds 5
 ```
 
 This records **15 seconds continuously** at 16 kHz, mono, float32, then ends audio
@@ -184,7 +200,7 @@ If 16 kHz capture is unsupported or OS access is denied, use `--audio`; do not
 merely change the array's declared rate. List available devices separately with:
 
 ```bash
-uv run --no-project python -m sounddevice
+uv run --no-project --python .venv/bin/python python -m sounddevice
 ```
 
 ## Offline use, privacy and recovery
@@ -240,7 +256,7 @@ Run the offline suite from the repo root, with ordinary Python 3.12 and no speec
 packages installed:
 
 ```bash
-python week06/speech/test_speech.py
+uv run --no-project --python 3.12 week06/speech/test_speech.py
 ```
 
 Tests cover input limits, WAV metadata, sample rates, chunk ordering and bounded

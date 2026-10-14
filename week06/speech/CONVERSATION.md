@@ -10,15 +10,18 @@ Kokoro ONNX. NVIDIA CUDA is optional; TensorRT is an optional later experiment.
 
 Run these commands from `week06/speech`. Keep this Python 3.12 environment
 separate from the repository's Week 4 Python 3.13 project.
+From the repository root, first run `cd week06/speech`.
+Create `.venv` once; skip `uv venv` if you already prepared it. No activation
+is required: every speech command selects this interpreter explicitly.
 
 Windows PowerShell:
 
 ```powershell
 uv venv --no-project --python 3.12 .venv
 uv pip install --python .venv/Scripts/python.exe -r conversation_requirements.txt
-.venv/Scripts/python.exe prepare_models.py
-.venv/Scripts/python.exe synthesise_onnx.py --check
-.venv/Scripts/python.exe transcribe.py --check
+uv run --no-project --python .venv/Scripts/python.exe prepare_models.py
+uv run --no-project --python .venv/Scripts/python.exe synthesise_onnx.py --check
+uv run --no-project --python .venv/Scripts/python.exe transcribe.py --check
 ```
 
 macOS or Linux:
@@ -26,9 +29,9 @@ macOS or Linux:
 ```bash
 uv venv --no-project --python 3.12 .venv
 uv pip install --python .venv/bin/python -r conversation_requirements.txt
-.venv/bin/python prepare_models.py
-.venv/bin/python synthesise_onnx.py --check
-.venv/bin/python transcribe.py --check
+uv run --no-project --python .venv/bin/python prepare_models.py
+uv run --no-project --python .venv/bin/python synthesise_onnx.py --check
+uv run --no-project --python .venv/bin/python transcribe.py --check
 ```
 
 Installation and preparation need internet. The runtime uses prepared local
@@ -59,6 +62,30 @@ other paths. The browser expects the default output paths, so put prepared model
 there for this example. The console recognizer accepts `--model DIRECTORY`.
 Models and generated outputs under `week06/out` are ignored by git.
 
+## Try text to sound and back
+
+After preparing the portable environment and models, try both directions before
+adding a microphone or chat server. From `week06/speech` on Windows:
+
+```powershell
+uv run --no-project --python .venv/Scripts/python.exe synthesise_onnx.py --text "Your drawing has been saved." --out ../out/onnx-hello.wav
+uv run --no-project --python .venv/Scripts/python.exe transcribe.py --audio ../out/onnx-hello.wav --offline --out ../out/onnx-hello.txt
+```
+
+macOS/Linux, from the same folder:
+
+```bash
+uv run --no-project --python .venv/bin/python synthesise_onnx.py --text "Your drawing has been saved." --out ../out/onnx-hello.wav
+uv run --no-project --python .venv/bin/python transcribe.py --audio ../out/onnx-hello.wav --offline --out ../out/onnx-hello.txt
+```
+
+These commands reuse the prepared environment and models; no LM Studio server
+or API key is needed.
+Open `../out/onnx-hello.wav` in an audio player and compare the transcript with
+the supplied sentence. Try another synthesis with `--speed 0.85` and a new
+`--out` filename. Speech outputs are not overwritten; use a new output name for
+each run. JSON files alongside the results record the settings.
+
 ## Load a small model in LM Studio
 
 Install LM Studio and load an instruction/chat model suitable for your computer.
@@ -82,14 +109,20 @@ For the NVIDIA instructor setup, append `--gpu max` to the load command.
 Windows, from `week06/speech`:
 
 ```powershell
-./run_conversation.ps1
+$env:HF_HUB_OFFLINE = "1"
+$env:TRANSFORMERS_OFFLINE = "1"
+uv run --no-project --python .venv/Scripts/python.exe python -m streamlit run speech_webrtc.py --server.address 127.0.0.1 --browser.gatherUsageStats false
 ```
 
 macOS/Linux, from `week06/speech`:
 
 ```bash
-HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -m streamlit run speech_webrtc.py --server.address 127.0.0.1 --browser.gatherUsageStats false
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 uv run --no-project --python .venv/bin/python python -m streamlit run speech_webrtc.py --server.address 127.0.0.1 --browser.gatherUsageStats false
 ```
+
+The existing Windows `./run_conversation.ps1` launcher is also available; it
+selects the same `.venv` and prepared cache. Keep the server terminal open and
+press **Ctrl+C** there to stop it. Keep LM Studio running in its own application.
 
 Open **http://localhost:8501** on this laptop. In the sidebar, press **Find loaded
 models**, and choose the model loaded in LM Studio. MiniCPM is preferred when
@@ -130,6 +163,8 @@ transcripts, and label synthetic speech when sharing it.
 
 ## Optional NVIDIA acceleration
 
+### Windows with NVIDIA
+
 The same app has a **NVIDIA CUDA** speech option. Macs and AMD machines should
 keep CPU; this faster-whisper implementation does not offer MPS or ROCm.
 LM Studio can still accelerate its language model independently.
@@ -162,9 +197,33 @@ To return to portable ONNX Runtime, uninstall both distributions and reinstall
 The console scripts also offer explicit acceleration:
 
 ```powershell
-.venv/Scripts/python.exe synthesise_onnx.py --device cuda --text "Hello. This is a local voice assistant." --out ../out/my-cuda-voice.wav
-.venv/Scripts/python.exe transcribe.py --device cuda --audio ../out/my-cuda-voice.wav --offline --out ../out/my-cuda-transcript.txt
+uv run --no-project --python .venv/Scripts/python.exe synthesise_onnx.py --device cuda --text "Hello. This is a local voice assistant." --out ../out/my-cuda-voice.wav
+uv run --no-project --python .venv/Scripts/python.exe transcribe.py --device cuda --audio ../out/my-cuda-voice.wav --offline --out ../out/my-cuda-transcript.txt
 ```
+
+Check the NVIDIA driver with `nvidia-smi` and verify Kokoro's active providers:
+
+```powershell
+uv run --no-project --python .venv/Scripts/python.exe python -c "from synthesise_onnx import load_voice; load_voice('cuda'); print('Kokoro CUDA session ready')"
+```
+
+This opens the local Kokoro model without speaking; it fails if the CUDA
+provider cannot initialize. The two console commands exercise actual synthesis
+and recognition. `--check` alone only inspects packages/files and does not prove
+GPU execution. If CUDA fails, keep CPU speech and leave LM Studio acceleration
+enabled independently.
+
+### macOS and other platforms
+
+On macOS, keep the portable CPU ONNX Runtime and CPU speech selection; do not
+install `conversation_nvidia_requirements.txt`. Apple silicon can use Metal
+for the LM Studio model while Whisper and Kokoro run on CPU. This example does
+not offer CUDA on Macs or ROCm speech on AMD GPUs.
+
+For NVIDIA Linux, the same optional ONNX Runtime replacement commands use
+`.venv/bin/python`, but supply compatible CUDA/cuDNN libraries using your Linux
+installation: `gpu_runtime.py` only discovers Windows DLLs. That installation
+path has not been verified here.
 
 Default console speech devices remain CPU. Standard Hub `base.en` uses CPU int8;
 local model directories use CPU float32 because the converted float16 checkpoint

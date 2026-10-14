@@ -41,8 +41,23 @@ and does not need a key:
 uv run week05/request_image.py --prompt "An orange circle centered on cream paper"
 ```
 
-Only when the instructor has enabled the classroom API account and `EASEL_KEY`
-is already set in your environment, add `--send`:
+For an enabled classroom API account, copy the root `.env.example` to `.env`
+once. From the repository root in PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+On macOS/Linux, use `cp .env.example .env`. If `.env` already exists, edit it
+instead of copying over it. Set `EASEL_KEY=your-classroom-api-key` in `.env`.
+This same root file is used by Week 06's song example. Both scripts use
+`python-dotenv`; `uv run` installs it from their script dependencies. With an
+existing Python environment, install it using `python -m pip install python-dotenv`.
+
+The scripts locate `.env` relative to their source files, so the working
+directory does not matter. Existing environment variables take precedence.
+`.env` is ignored by Git; `.env.example` contains empty placeholders only.
+Then add `--send`:
 
 ```bash
 uv run week05/request_image.py --send

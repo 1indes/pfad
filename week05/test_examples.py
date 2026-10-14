@@ -1,5 +1,5 @@
 # /// script
-# dependencies = ["Pillow>=11,<13", "numpy>=2,<3"]
+# dependencies = ["Pillow>=11,<13", "numpy>=2,<3", "python-dotenv>=1,<2"]
 # ///
 """Run with: uv run week05/test_examples.py"""
 

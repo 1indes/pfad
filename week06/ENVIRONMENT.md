@@ -8,7 +8,7 @@ what was exercised locally; it is not a guarantee for every student's machine.
 | Example | Result here | Missing or still to check |
 | --- | --- | --- |
 | `sound/noise.py`, `sound/tone.py` | Tests create valid 2-second PCM WAVs; standard library only | Listen at low volume on the classroom speakers |
-| `sound/request_song.py` | Offline JSON preview works | `EASEL_BASE_URL` and `EASEL_API_KEY` are absent; live paid generation was not run |
+| `sound/request_song.py` | Offline JSON preview works; instructor's live run completed and saved two M4A tracks | An enabled classroom API key (`EASEL_KEY` or `EASEL_API_KEY`) is needed; actual listening still to check |
 | Browser piano | JS checks and Chromium rendering/control checks pass | Actual speaker listening; keys are **1-8** |
 | Browser harmonics | JS checks and Chromium rendering/control checks pass | Actual speaker listening |
 | Browser voice surface | Chromium synthetic demo, fake mic, denial handling, STOP/track cleanup pass | Physical microphone rehearsal; p5 CDN is needed at first page load |
