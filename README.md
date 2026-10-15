@@ -17,6 +17,7 @@ runs, so expect it to grow week by week — `git pull` before each class.
    "no GitHub account" to "my first repository is published".
 3. **Read [`assignments/01-why-are-we-here.md`](assignments/01-why-are-we-here.md).**
 <<<<<<< HEAD
+<<<<<<< HEAD
    Your first assignment is due at the end of week 2. Before you submit, run
    [the check](assignments/check.py) inside your repo — it tells you what is missing.
 4. **For the current lesson, go to [Week 6: sound, music and speech](week06/README.md).**
@@ -24,6 +25,9 @@ runs, so expect it to grow week by week — `git pull` before each class.
 =======
    Your first assignment is due at the end of week 2.
 >>>>>>> 0de58c3 (Add README with project description)
+=======
+   Your first assignment is due at the end of week 2.
+>>>>>>> e4c0955ebb5edc0e7186fa10bfd00b0c3a578673
 
 ```bash
 git clone https://github.com/sd5913/pfad
@@ -104,5 +108,10 @@ can show people. Treat them accordingly.
 | Week | Topic |
 |---|---|
 | 01 | [Git, GitHub, and your first repository](week01/README.md) |
+<<<<<<< HEAD
+=======
+| 02 | [Your repo passes the check · predict, break, fix](week02/README.md) |
+| 03 | [Numbers into pictures — data, loops, functions, matplotlib](week03/README.md) |
+>>>>>>> e4c0955ebb5edc0e7186fa10bfd00b0c3a578673
 
 More lands each week.
